@@ -26,7 +26,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           where: {
             OR: [
               { email: identifier.toLowerCase() },
-              { loginId: identifier },
+              { loginId: identifier.toUpperCase() },
             ],
           },
         });

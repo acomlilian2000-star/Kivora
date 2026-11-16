@@ -8,13 +8,9 @@ import { ArrowRight, Sparkles } from "lucide-react";
 
 export default function RegisterForm() {
   const router = useRouter();
-  const [role, setRole] = useState<"community" | "teacher">("community");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [inviteCode, setInviteCode] = useState("");
-  const [schoolName, setSchoolName] = useState("");
-  const [district, setDistrict] = useState("");
   const [error, setError] = useState("");
   const [pending, setPending] = useState(false);
 
@@ -26,7 +22,7 @@ export default function RegisterForm() {
       const response = await fetch("/api/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, password, role, inviteCode, schoolName, district }),
+        body: JSON.stringify({ name, email, password, role: "community" }),
       });
       const result = await response.json();
       if (!response.ok) throw new Error(result.error || "Could not create your account.");
@@ -45,16 +41,10 @@ export default function RegisterForm() {
     <main className="auth-page">
       <section className="auth-card">
         <Link className="auth-brand" href="/"><span><Sparkles size={18} /></span>KIVORA</Link>
-        <p className="section-kicker">JOIN THE INNOVATION JOURNEY</p>
-        <h1>Create an account</h1>
-        <p className="auth-description">Choose how you take part. Learner accounts are set up by their supervising teachers.</p>
+        <p className="section-kicker">COMMUNITY PARTICIPATION</p>
+        <h1>Join KIVORA</h1>
+        <p className="auth-description">Share local knowledge and real community challenges. School administrators register their schools separately.</p>
         <form className="auth-form" onSubmit={(event) => void submit(event)}>
-          <label className="form-label">I’m joining as
-            <select value={role} onChange={(event) => setRole(event.target.value as "community" | "teacher")}>
-              <option value="community">Community member</option>
-              <option value="teacher">Teacher (invitation required)</option>
-            </select>
-          </label>
           <label className="form-label">Name or display name
             <input autoComplete="name" required minLength={2} maxLength={60} value={name} onChange={(event) => setName(event.target.value)} />
           </label>
@@ -65,24 +55,14 @@ export default function RegisterForm() {
             <input autoComplete="new-password" type="password" required minLength={10} maxLength={128} value={password} onChange={(event) => setPassword(event.target.value)} />
             <small>Use at least 10 characters.</small>
           </label>
-          {role === "teacher" && <label className="form-label">Teacher invitation code
-            <input required autoComplete="off" value={inviteCode} onChange={(event) => setInviteCode(event.target.value)} />
-          </label>}
-          {role === "teacher" && <div className="form-two-col">
-            <label className="form-label">School name
-              <input required maxLength={120} value={schoolName} onChange={(event) => setSchoolName(event.target.value)} />
-            </label>
-            <label className="form-label">District
-              <input required maxLength={80} value={district} onChange={(event) => setDistrict(event.target.value)} />
-            </label>
-          </div>}
           {error && <p className="form-error" role="alert">{error}</p>}
           <button className="button button-dark full-button" disabled={pending}>
             {pending ? "Creating account…" : "Create account"} {!pending && <ArrowRight size={15} />}
           </button>
         </form>
         <p className="auth-switch">Already registered? <Link href="/login">Sign in</Link></p>
-        <p className="auth-safety">Community accounts cannot access private student projects. Teachers need an invitation code; student accounts are teacher-managed.</p>
+        <p className="auth-switch">Registering for a school? <Link href="/school/register">Register your school</Link></p>
+        <p className="auth-safety">Community accounts cannot access private student projects. Teachers and learners join through their school.</p>
       </section>
     </main>
   );

@@ -24,7 +24,10 @@ export default function LandingPage() {
           <a href="#for-everyone">For everyone</a>
           <a href="#basic-phone">Basic-phone access</a>
         </nav>
-        <Link className="landing-login" href="/login">Log in <ArrowUpRight size={15} /></Link>
+        <div className="landing-nav-actions">
+          <Link className="landing-school-link" href="/school/register">Register your school</Link>
+          <Link className="landing-login" href="/login">Log in <ArrowUpRight size={15} /></Link>
+        </div>
       </header>
 
       <section className="landing-hero">
@@ -88,7 +91,10 @@ export default function LandingPage() {
       <footer className="landing-footer">
         <Link className="landing-brand" href="/"><span className="landing-brand-mark"><Sparkles size={17} /></span>KIVORA<span className="landing-period">.</span></Link>
         <span>Ideas into impact. Together.</span>
-        <Link href="/register">Join KIVORA <ArrowRight size={14} /></Link>
+        <div className="landing-footer-actions">
+          <Link href="/school/register">Register your school</Link>
+          <Link href="/register">Join KIVORA <ArrowRight size={14} /></Link>
+        </div>
       </footer>
     </main>
   );
