@@ -49,6 +49,11 @@ type Challenge = {
   status?: "pending" | "published";
   kind?: "community" | "school";
   schoolName?: string | null;
+  peopleAffected?: string | null;
+  whyItMatters?: string | null;
+  possibleAreas?: string | null;
+  kind?: "community" | "school";
+  schoolName?: string | null;
   title: string;
   category: string;
   location: string;
@@ -285,18 +290,19 @@ function ChallengeRow({ challenge, onClick }: { challenge: Challenge; onClick: (
   </button>;
 }
 
-function ChallengeBrowser({ challenges, onOpen, search }: { challenges: Challenge[]; onOpen: (challenge: Challenge) => void; search: string }) {
+function ChallengeBrowser({ challenges, onOpen, search, kind }: { challenges: Challenge[]; onOpen: (challenge: Challenge) => void; search: string; kind?: "community" | "school" }) {
   const [category, setCategory] = useState("All challenges");
   const categories = ["All challenges", "Environment", "Water & sanitation", "Energy"];
   const filtered = challenges.filter((challenge) =>
+    (!kind || (challenge.kind ?? "community") === kind) &&
     (category === "All challenges" || challenge.category === category) &&
     `${challenge.title} ${challenge.description} ${challenge.location} ${challenge.category}`.toLowerCase().includes(search.toLowerCase()),
   );
   return <div className="inner-view">
     <div className="page-intro"><div><p className="section-kicker">LEARN BY DOING</p><h1>Find your next challenge</h1><p>Real problems. Curious minds. Solutions that start right here.</p></div><div className="intro-art"><Compass size={29} /></div></div>
     <div className="filter-bar"><div className="filter-label"><Filter size={16} /> Explore by topic</div><div className="filter-chips">{categories.map((item) => <button key={item} className={`filter-chip ${category === item ? "filter-chip-active" : ""}`} onClick={() => setCategory(item)}>{item}</button>)}</div></div>
-    <div className="browse-count"><span>{filtered.length} open challenges</span><span>Sorted by <strong>recently published <ChevronDown size={13} /></strong></span></div>
-    <div className="browser-list">{filtered.map((challenge) => <button className="browser-card" key={challenge.title} onClick={() => onOpen(challenge)}><div className={`browser-illustration ${challenge.color}`}><span className="illustration-orbit" /><span className="illustration-symbol">{challenge.icon === "leaf" ? <Leaf size={34} /> : challenge.icon === "water" ? <Sprout size={34} /> : <Lightbulb size={34} />}</span></div><div className="browser-card-body"><div className="browser-card-top"><span className="category-chip">{challenge.category}</span><span className="challenge-open">OPEN TO JOIN</span></div><h3>{challenge.title}</h3><p>{challenge.description}</p>    <div className="browser-meta"><span><MapPin size={14} />{challenge.location}</span><span><Clock3 size={14} />{challenge.duration}</span><span><Users size={14} />{challenge.participants} teams</span></div><div className="browser-card-footer"><span className="difficulty"><span className={`difficulty-dot ${challenge.difficulty.toLowerCase()}`} />{challenge.difficulty}</span><span className="text-button">Explore challenge <ArrowRight size={14} /></span></div></div></button>)}</div>
+    <div className="browse-count"><span>{filtered.length} {kind === "school" ? "school challenges" : "community problems"}</span><span>Sorted by <strong>recently published <ChevronDown size={13} /></strong></span></div>
+    <div className="browser-list">{filtered.map((challenge) => <button className="browser-card" key={challenge.id ?? challenge.title} onClick={() => onOpen(challenge)}><div className={`browser-illustration ${challenge.color}`}><span className="illustration-orbit" /><span className="illustration-symbol">{challenge.icon === "leaf" ? <Leaf size={34} /> : challenge.icon === "water" ? <Sprout size={34} /> : <Lightbulb size={34} />}</span></div><div className="browser-card-body"><div className="browser-card-top"><span className="category-chip">{challenge.category}</span><span className="challenge-open">{challenge.kind === "school" ? "SCHOOL CHALLENGE" : "OPEN TO JOIN"}</span></div><h3>{challenge.title}</h3>{challenge.schoolName && <span className="challenge-school-name">{challenge.schoolName}</span>}<p>{challenge.description}</p><div className="browser-meta"><span><MapPin size={14} />{challenge.location}</span><span><Clock3 size={14} />{challenge.duration}</span><span><Users size={14} />{challenge.participants} teams</span></div><div className="browser-card-footer"><span className="difficulty"><span className={`difficulty-dot ${challenge.difficulty.toLowerCase()}`} />{challenge.difficulty}</span><span className="text-button">Explore challenge <ArrowRight size={14} /></span></div></div></button>)}</div>
     {!filtered.length && <div className="empty-state"><Search size={22} /><strong>No challenges found</strong><span>Try a different search or topic.</span></div>}
   </div>;
 }
@@ -312,6 +318,10 @@ function ProjectTeamCard({ team }: { team: StudentTeam }) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [evidence, setEvidence] = useState("");
+  const [peopleHelped, setPeopleHelped] = useState("0");
+  const [materialsReused, setMaterialsReused] = useState("0");
+  const [problemsAddressed, setProblemsAddressed] = useState("0");
+  const [sharePublicly, setSharePublicly] = useState(false);
   const [error, setError] = useState("");
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
@@ -325,13 +335,26 @@ function ProjectTeamCard({ team }: { team: StudentTeam }) {
       const response = await fetch("/api/submissions", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ teamId: team.id, title, description, evidence: links }),
+        body: JSON.stringify({
+          teamId: team.id,
+          title,
+          description,
+          evidence: links,
+          peopleHelped: Number(peopleHelped),
+          materialsReused: Number(materialsReused),
+          problemsAddressed: Number(problemsAddressed),
+          sharePublicly,
+        }),
       });
       const result = await response.json();
       if (!response.ok) throw new Error(result.error || "Could not submit the project.");
       setTitle("");
       setDescription("");
       setEvidence("");
+      setPeopleHelped("0");
+      setMaterialsReused("0");
+      setProblemsAddressed("0");
+      setSharePublicly(false);
       setSent(true);
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : "Could not submit the project.");
@@ -341,7 +364,7 @@ function ProjectTeamCard({ team }: { team: StudentTeam }) {
   }
   return <article className="project-card"><div className="project-card-top"><div className="project-icon project-icon-green"><Lightbulb size={20} /></div><span className="project-status">IN PROGRESS</span></div><h3>{team.challenge.title}</h3><p>{team.challenge.description}</p><div className="project-tags"><span>{team.challenge.category}</span><span>Team: {team.name}</span></div>
     <div className="team-submissions">{team.submissions.map((submission) => <div className="student-submission" key={submission.id}><strong>{submission.title}</strong><span>{submission.status === "reviewed" ? `Teacher score: ${submission.assessment?.score ?? "—"}/5` : "Awaiting teacher feedback"}</span>{submission.assessment && <p>{submission.assessment.feedback}{submission.assessment.badge ? ` · Badge: ${submission.assessment.badge}` : ""}</p>}</div>)}</div>
-    <form className="project-submit-form" onSubmit={(event) => void submit(event)}><strong>Share your team’s progress</strong><input required minLength={3} maxLength={100} value={title} onChange={(event) => setTitle(event.target.value)} placeholder="Give your idea a title" /><textarea required minLength={20} maxLength={1000} value={description} onChange={(event) => setDescription(event.target.value)} placeholder="Describe your proposed solution or progress" rows={3} /><input value={evidence} onChange={(event) => setEvidence(event.target.value)} placeholder="Evidence links (optional, space-separated)" aria-label="Evidence links" />{error && <span className="form-error" role="alert">{error}</span>}{sent && <span className="form-success">Your work was sent to your teacher for review.</span>}<button className="button button-dark" disabled={sending}>{sending ? "Submitting…" : "Submit project update"} <Send size={14} /></button></form></article>;
+    <form className="project-submit-form" onSubmit={(event) => void submit(event)}><strong>Share your team’s progress</strong><input required minLength={3} maxLength={100} value={title} onChange={(event) => setTitle(event.target.value)} placeholder="Give your idea a title" /><textarea required minLength={20} maxLength={1000} value={description} onChange={(event) => setDescription(event.target.value)} placeholder="Describe what you tried, what happened, and what you will change" rows={3} /><input value={evidence} onChange={(event) => setEvidence(event.target.value)} placeholder="Evidence links (optional, space-separated)" aria-label="Evidence links" /><div className="project-impact-inputs"><label>People helped<input type="number" min="0" max="10000" value={peopleHelped} onChange={(event) => setPeopleHelped(event.target.value)} /></label><label>Materials reused<input type="number" min="0" max="10000" value={materialsReused} onChange={(event) => setMaterialsReused(event.target.value)} /></label><label>Problems addressed<input type="number" min="0" max="10000" value={problemsAddressed} onChange={(event) => setProblemsAddressed(event.target.value)} /></label></div><label className="assessment-public"><input type="checkbox" checked={sharePublicly} onChange={(event) => setSharePublicly(event.target.checked)} /> I agree to share this work without my name or contact details in the KIVORA showcase after teacher approval.</label><small>These impact counts are your report; a teacher must review them before they can be described as verified.</small>{error && <span className="form-error" role="alert">{error}</span>}{sent && <span className="form-success">Your work was sent to your teacher for review.</span>}<button className="button button-dark" disabled={sending}>{sending ? "Submitting…" : "Submit project update"} <Send size={14} /></button></form></article>;
 }
 
 function ProjectsView() {
@@ -379,6 +402,9 @@ type TeacherProjectBrief = {
   competencies: string;
   objectives: string;
   activities: string;
+  materials: string;
+  timeline: string;
+  expectedOutcomes: string;
   assessment: string;
   challenge: { title: string };
 };
@@ -388,15 +414,16 @@ type TeacherSubmission = {
   title: string;
   description: string;
   evidence: string;
+  sharedPublicly: boolean;
   team: { name: string };
   challenge: { title: string };
 };
 
 function SubmissionReviewCard({ submission, onReviewed }: { submission: TeacherSubmission; onReviewed: () => void }) {
-  const [teacherName, setTeacherName] = useState("");
   const [score, setScore] = useState("4");
   const [feedback, setFeedback] = useState("");
   const [badge, setBadge] = useState("");
+  const [publishPublicly, setPublishPublicly] = useState(false);
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
   async function assess(event: FormEvent<HTMLFormElement>) {
@@ -407,7 +434,7 @@ function SubmissionReviewCard({ submission, onReviewed }: { submission: TeacherS
       const response = await fetch(`/api/submissions/${submission.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ teacherName, score: Number(score), feedback, badge }),
+        body: JSON.stringify({ score: Number(score), feedback, badge, publishPublicly }),
       });
       const result = await response.json();
       if (!response.ok) throw new Error(result.error || "Could not save assessment.");
@@ -418,8 +445,14 @@ function SubmissionReviewCard({ submission, onReviewed }: { submission: TeacherS
       setSaving(false);
     }
   }
-  const evidence = JSON.parse(submission.evidence) as string[];
-  return <article className="review-card submission-review-card"><div className="review-avatar"><FileText size={15} /></div><div className="review-card-main"><div className="review-meta"><span>STUDENT SOLUTION</span><span>·</span><span>{submission.team.name}</span></div><h3>{submission.title}</h3><p>For {submission.challenge.title}</p><div className="review-description">{submission.description}</div>{evidence.length > 0 && <div className="evidence-links">{evidence.map((url) => <a href={url} target="_blank" rel="noreferrer" key={url}>{url}</a>)}</div>}<form className="assessment-form" onSubmit={(event) => void assess(event)}><label>Teacher name<input required minLength={2} maxLength={80} value={teacherName} onChange={(event) => setTeacherName(event.target.value)} /></label><label>Score<select value={score} onChange={(event) => setScore(event.target.value)}>{[1, 2, 3, 4, 5].map((value) => <option key={value} value={value}>{value} / 5</option>)}</select></label><label>Badge (optional)<input value={badge} onChange={(event) => setBadge(event.target.value)} placeholder="e.g. Community champion" /></label><label className="assessment-feedback">Feedback<textarea required minLength={5} value={feedback} onChange={(event) => setFeedback(event.target.value)} placeholder="Share specific, encouraging feedback" rows={2} /></label>{error && <span className="form-error" role="alert">{error}</span>}<button className="button button-outline small-button" disabled={saving}>{saving ? "Saving…" : "Send feedback"} <Send size={14} /></button></form></div></article>;
+  let evidence: string[] = [];
+  try {
+    const parsed: unknown = JSON.parse(submission.evidence);
+    if (Array.isArray(parsed)) evidence = parsed.filter((url): url is string => typeof url === "string" && /^https?:\/\//i.test(url));
+  } catch {
+    evidence = [];
+  }
+  return <article className="review-card submission-review-card"><div className="review-avatar"><FileText size={15} /></div><div className="review-card-main"><div className="review-meta"><span>STUDENT SOLUTION</span><span>·</span><span>{submission.team.name}</span></div><h3>{submission.title}</h3><p>For {submission.challenge.title}</p><div className="review-description">{submission.description}</div>{evidence.length > 0 && <div className="evidence-links">{evidence.map((url) => <a href={url} target="_blank" rel="noreferrer" key={url}>Review evidence</a>)}</div>}<form className="assessment-form" onSubmit={(event) => void assess(event)}><label>Score<select value={score} onChange={(event) => setScore(event.target.value)}>{[1, 2, 3, 4, 5].map((value) => <option key={value} value={value}>{value} / 5</option>)}</select></label><label>Badge (optional)<input value={badge} maxLength={80} onChange={(event) => setBadge(event.target.value)} placeholder="e.g. Community problem-solver" /></label><label className="assessment-feedback">Feedback<textarea required minLength={5} maxLength={2000} value={feedback} onChange={(event) => setFeedback(event.target.value)} placeholder="Share specific, encouraging feedback" rows={2} /></label>{submission.sharedPublicly ? <label className="assessment-public"><input type="checkbox" checked={publishPublicly} onChange={(event) => setPublishPublicly(event.target.checked)} /> Approve this student-consented work for the public showcase</label> : <span className="review-text-button">Student has not opted into public sharing.</span>}{error && <span className="form-error" role="alert">{error}</span>}<button className="button button-outline small-button" disabled={saving}>{saving ? "Saving…" : "Send feedback"} <Send size={14} /></button></form></div></article>;
 }
 
 function TeacherReview({ challenges, onApprove }: { challenges: Challenge[]; onApprove: (challenge: Challenge) => Promise<void> }) {
@@ -506,6 +539,10 @@ function TeacherReview({ challenges, onApprove }: { challenges: Challenge[]; onA
                   Competencies: {JSON.parse(brief.competencies).join(" · ")}<br />
                   Learning objectives: {JSON.parse(brief.objectives).join(" · ")}<br />
                   Community project steps: {JSON.parse(brief.activities).join(" · ")}<br />
+                  Possible materials: {JSON.parse(brief.materials).join(" · ")}<br />
+                  Suggested timeline: {JSON.parse(brief.timeline).join(" · ")}<br />
+                  Expected outcomes: {JSON.parse(brief.expectedOutcomes).join(" · ")}<br />
+                  Safety: {brief.safetyNote}<br />
                   Assessment: {JSON.parse(brief.assessment).join(" · ")}
                 </div>
               </div>
@@ -549,6 +586,11 @@ function SubmitChallenge({ onSubmit, onCancel }: { onSubmit: (challenge: Challen
   const [location, setLocation] = useState("");
   const [contactPhone, setContactPhone] = useState("");
   const [category, setCategory] = useState("Environment");
+  const [kind, setKind] = useState<"community" | "school">("community");
+  const [schoolName, setSchoolName] = useState("");
+  const [peopleAffected, setPeopleAffected] = useState("");
+  const [whyItMatters, setWhyItMatters] = useState("");
+  const [possibleAreas, setPossibleAreas] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const submit = async (event: FormEvent<HTMLFormElement>) => {
@@ -556,7 +598,7 @@ function SubmitChallenge({ onSubmit, onCancel }: { onSubmit: (challenge: Challen
     setSubmitting(true);
     setError("");
     try {
-      await onSubmit({ title, description, location, contactPhone, category, difficulty: "Beginner", duration: "2–3 weeks", participants: 0, color: "mint", icon: "leaf", status: "pending" });
+      await onSubmit({ title, description, location, contactPhone, category, kind, schoolName, peopleAffected, whyItMatters, possibleAreas, difficulty: "Beginner", duration: "2–3 weeks", participants: 0, color: "blue", icon: "bulb", status: "pending" });
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : "Could not submit this challenge.");
     } finally {
@@ -565,17 +607,22 @@ function SubmitChallenge({ onSubmit, onCancel }: { onSubmit: (challenge: Challen
   };
   return (
     <div className="inner-view">
-      <div className="page-intro"><div><p className="section-kicker">YOUR COMMUNITY, YOUR IDEAS</p><h1>Share a challenge</h1><p>Tell us about a local problem. It could become someone’s next big idea.</p></div><div className="intro-art"><MessageSquareText size={28} /></div></div>
+      <div className="page-intro"><div><p className="section-kicker">YOUR COMMUNITY, YOUR IDEAS</p><h1>Share a challenge</h1><p>Tell us about a local problem or organise a school innovation challenge.</p></div><div className="intro-art"><MessageSquareText size={28} /></div></div>
       <div className="submit-layout">
         <form className="submit-form panel" onSubmit={submit}>
-          <div className="form-heading"><span className="form-step">01</span><div><h2>What needs solving?</h2><p>A few details help us connect this challenge with curious minds.</p></div></div>
+          <div className="form-heading"><span className="form-step">01</span><div><h2>What are you organising?</h2><p>A teacher reviews each entry before learners can join.</p></div></div>
+          <label className="form-label">Challenge type<select value={kind} onChange={(event) => setKind(event.target.value as "community" | "school")}><option value="community">Community problem</option><option value="school">School innovation challenge</option></select></label>
+          {kind === "school" && <label className="form-label">School name<input required maxLength={120} value={schoolName} onChange={(event) => setSchoolName(event.target.value)} placeholder="Name of the organising school" /></label>}
           <label className="form-label">Give your challenge a short title<input required maxLength={70} value={title} onChange={(event) => setTitle(event.target.value)} placeholder="e.g. Our school needs a greener lunch break" /></label>
           <label className="form-label">Tell us a little more<textarea required minLength={15} maxLength={500} value={description} onChange={(event) => setDescription(event.target.value)} placeholder="What’s happening? Who does it affect? What have you noticed?" rows={5} /><small>{description.length}/500</small></label>
+          <label className="form-label">Who is affected? (optional)<input maxLength={200} value={peopleAffected} onChange={(event) => setPeopleAffected(event.target.value)} placeholder="For example: learners who use the school path" /></label>
+          <label className="form-label">Why does this matter? (optional)<textarea maxLength={300} value={whyItMatters} onChange={(event) => setWhyItMatters(event.target.value)} rows={2} /></label>
+          <label className="form-label">Where could learners contribute? (optional)<textarea maxLength={300} value={possibleAreas} onChange={(event) => setPossibleAreas(event.target.value)} rows={2} placeholder="Share possible directions, not a required solution." /></label>
           <div className="form-two-col">
             <label className="form-label">Where is this happening?<div className="input-with-icon"><MapPin size={16} /><input required value={location} onChange={(event) => setLocation(event.target.value)} placeholder="Community, town or school" /></div></label>
             <label className="form-label">Choose a topic<select value={category} onChange={(event) => setCategory(event.target.value)}><option>Environment</option><option>Water & sanitation</option><option>Energy</option><option>Health & wellbeing</option><option>Community safety</option><option>Other</option></select></label>
           </div>
-          <label className="form-label">Phone for SMS updates (optional)<input type="tel" value={contactPhone} onChange={(event) => setContactPhone(event.target.value)} placeholder="+256 7XX XXX XXX" /></label>
+          {kind === "community" && <label className="form-label">Phone for SMS updates (optional)<input type="tel" value={contactPhone} onChange={(event) => setContactPhone(event.target.value)} placeholder="+256 7XX XXX XXX" /></label>}
           <div className="form-footnote"><span><Heart size={15} /> Your contact details are never shown publicly.</span><span>Submissions are reviewed by a teacher.</span></div>
           {error && <p className="form-error" role="alert">{error}</p>}
           <div className="form-actions"><button type="button" className="text-button" onClick={onCancel}>Cancel</button><button className="button button-dark" type="submit" disabled={submitting}>{submitting ? "Sending…" : "Send for review"} {!submitting && <Send size={15} />}</button></div>
@@ -636,9 +683,13 @@ function ChallengeModal({ challenge, onClose, onJoin }: { challenge: Challenge; 
         <div className={`modal-art ${challenge.color}`}><div className="modal-art-orbit" /><div className="modal-art-plant"><Sparkles size={42} /></div><span className="modal-art-spark">✳</span></div>
         <div className="modal-body">
           <span className="category-chip">{challenge.category}</span>
+          {challenge.kind === "school" && challenge.schoolName && <span className="challenge-school-name">{challenge.schoolName}</span>}
           <h2 id="modal-title">{challenge.title}</h2>
           <div className="modal-location"><MapPin size={14} />{challenge.location}</div>
           <p>{challenge.description}</p>
+          {challenge.peopleAffected && <p className="challenge-context"><strong>Who is affected:</strong> {challenge.peopleAffected}</p>}
+          {challenge.whyItMatters && <p className="challenge-context"><strong>Why it matters:</strong> {challenge.whyItMatters}</p>}
+          {challenge.possibleAreas && <p className="challenge-context"><strong>Ways learners could contribute:</strong> {challenge.possibleAreas}</p>}
           <div className="modal-details">
             <span><Clock3 size={15} /><strong>{challenge.duration}</strong><small>project length</small></span>
             <span><Users size={15} /><strong>{challenge.participants} teams</strong><small>started</small></span>
@@ -680,7 +731,7 @@ function isProjectBrief(value: unknown): value is ProjectBrief {
   return typeof brief.projectTitle === "string" &&
     typeof brief.learnerLevel === "string" &&
     typeof brief.safetyNote === "string" &&
-    ["subjects", "competencies", "objectives", "activities", "assessment"].every(
+    ["subjects", "competencies", "objectives", "activities", "materials", "timeline", "expectedOutcomes", "assessment"].every(
       (key) => Array.isArray(brief[key]) && (brief[key] as unknown[]).every((item) => typeof item === "string"),
     );
 }
@@ -694,7 +745,16 @@ export default function KivoraApp({ role }: { role: string }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [challenges, setChallenges] = useState<Challenge[]>([]);
-  const [summary, setSummary] = useState<DashboardSummary>({ publishedChallenges: 0, pendingChallenges: 0, teams: 0, submissions: 0 });
+  const [summary, setSummary] = useState<DashboardSummary>({
+    publishedChallenges: 0,
+    pendingChallenges: 0,
+    schoolChallenges: 0,
+    teams: 0,
+    submissions: 0,
+    peopleHelped: 0,
+    materialsReused: 0,
+    problemsAddressed: 0,
+  });
   const [selectedChallenge, setSelectedChallenge] = useState<Challenge | null>(null);
   const [toast, setToast] = useState("");
   const navigateTo = useCallback((view: View) => {
@@ -735,12 +795,23 @@ export default function KivoraApp({ role }: { role: string }) {
   const pageTitle = activeView;
   const currentView = useMemo(() => {
     switch (activeView) {
+      case "Problem discovery":
       case "Discover challenges":
-        return <ChallengeBrowser challenges={challenges.filter((challenge) => challenge.status !== "pending")} onOpen={setSelectedChallenge} search={search} />;
+        return <ChallengeBrowser challenges={challenges.filter((challenge) => challenge.status !== "pending")} onOpen={setSelectedChallenge} search={search} kind="community" />;
+      case "School challenges":
+        return <ChallengeBrowser challenges={challenges.filter((challenge) => challenge.status !== "pending")} onOpen={setSelectedChallenge} search={search} kind="school" />;
+      case "AI mentor":
+        return <InnovationMentor />;
+      case "Resource finder":
+        return <ResourceFinder onBuildProject={() => navigateTo("Project builder")} />;
+      case "Project builder":
       case "My projects":
         return <ProjectsView />;
+      case "Innovation showcase":
       case "Impact stories":
-        return <ImpactView />;
+        return <InnovationShowcase />;
+      case "Impact tracker":
+        return <ImpactTracker summary={summary} />;
       case "Teacher review":
         if (role !== "teacher" && role !== "admin") {
           return <div className="empty-state"><GraduationCap size={23} /><strong>Teacher access only</strong><span>Sign in with a verified teacher account to review work.</span></div>;
@@ -757,6 +828,7 @@ export default function KivoraApp({ role }: { role: string }) {
           setSummary((current) => ({
             ...current,
             publishedChallenges: current.publishedChallenges + 1,
+            schoolChallenges: challenge.kind === "school" ? current.schoolChallenges + 1 : current.schoolChallenges,
             pendingChallenges: Math.max(0, current.pendingChallenges - 1),
           }));
           notify(`“${challenge.title}” approved for learning`);
@@ -778,6 +850,7 @@ export default function KivoraApp({ role }: { role: string }) {
           notify("Your challenge has been sent for teacher review");
         }} />;
       default:
+        if (role === "student") return <StudentHome summary={summary} onNavigate={(view) => navigateTo(view as View)} />;
         return <Dashboard challenges={challenges.filter((challenge) => challenge.status !== "pending")} summary={summary} onNavigate={navigateTo} onOpenChallenge={setSelectedChallenge} search={search} />;
     }
   }, [activeView, challenges, navigateTo, notify, role, search, summary]);
@@ -793,7 +866,7 @@ export default function KivoraApp({ role }: { role: string }) {
       pendingReviewCount={summary.pendingChallenges}
     />
     <main className="main-area">
-      <Topbar title={pageTitle} onMenu={() => setMobileOpen(true)} query={search} onQueryChange={setSearch} onNavigate={navigateTo} searchEnabled={activeView === "Home" || activeView === "Discover challenges"} />
+      <Topbar title={pageTitle} onMenu={() => setMobileOpen(true)} query={search} onQueryChange={setSearch} onNavigate={navigateTo} searchEnabled={activeView === "Home" || activeView === "Problem discovery" || activeView === "Discover challenges" || activeView === "School challenges"} />
       <div className="page-content">{currentView}</div>
       <footer className="app-footer"><span>© 2026 KIVORA</span><span>Ideas into impact, together.</span><span>Uganda-first · Community-led</span></footer>
     </main>
@@ -809,14 +882,29 @@ export default function KivoraApp({ role }: { role: string }) {
       setSummary((current) => ({ ...current, teams: current.teams + 1 }));
       const name = selectedChallenge.title;
       setSelectedChallenge(null);
-      navigateTo("My projects");
+      navigateTo("Project builder");
       notify(`You’ve started a project for “${name}”`);
     }} />}
     {toast && <Toast message={toast} onDismiss={() => setToast("")} />}
   </div>;
 }
 
-const viewLabels: View[] = ["Home", "Discover challenges", "My projects", "Impact stories", "Teacher review", "Mobile access", "Submit a challenge"];
+const viewLabels: View[] = [
+  "Home",
+  "Problem discovery",
+  "AI mentor",
+  "Resource finder",
+  "Project builder",
+  "Innovation showcase",
+  "Impact tracker",
+  "School challenges",
+  "Teacher review",
+  "Mobile access",
+  "Submit a challenge",
+  "Discover challenges",
+  "My projects",
+  "Impact stories",
+];
 
 function viewFromUrl(): View {
   if (typeof window === "undefined") return "Home";

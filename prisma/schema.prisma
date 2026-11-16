@@ -8,33 +8,33 @@ datasource db {
 }
 
 model User {
-  id                 String            @id @default(cuid())
-  name               String
-  email              String?           @unique
-  loginId            String?           @unique
-  passwordHash       String?
-  role               String            @default("student")
-  school             String?
-  createdAt          DateTime          @default(now())
-  studentProfile     StudentProfile?
-  teacherProfile     TeacherProfile?
-  communityProfile   CommunityProfile?
-  mentorProfile      MentorProfile?
-  supervisedStudents StudentProfile[]  @relation("SupervisedStudents")
-  createdTeams       Team[]            @relation("TeamCreator")
-  submittedChallenges Challenge[]         @relation("ChallengeSubmitter")
-  teamMembers        TeamMember[]
-  assessments        Assessment[]
-  notifications      Notification[]
+  id                  String            @id @default(cuid())
+  name                String
+  email               String?           @unique
+  loginId             String?           @unique
+  passwordHash        String?
+  role                String            @default("student")
+  school              String?
+  createdAt           DateTime          @default(now())
+  studentProfile      StudentProfile?
+  teacherProfile      TeacherProfile?
+  communityProfile    CommunityProfile?
+  mentorProfile       MentorProfile?
+  supervisedStudents  StudentProfile[]  @relation("SupervisedStudents")
+  createdTeams        Team[]            @relation("TeamCreator")
+  submittedChallenges Challenge[]       @relation("ChallengeSubmitter")
+  teamMembers         TeamMember[]
+  assessments         Assessment[]
+  notifications       Notification[]
 }
 
 model School {
-  id        String           @id @default(cuid())
-  name      String
-  district  String
-  createdAt DateTime         @default(now())
-  students  StudentProfile[]
-  teachers  TeacherProfile[]
+  id         String           @id @default(cuid())
+  name       String
+  district   String
+  createdAt  DateTime         @default(now())
+  students   StudentProfile[]
+  teachers   TeacherProfile[]
   challenges Challenge[]
 
   @@unique([name, district])
@@ -84,31 +84,31 @@ model MentorProfile {
 }
 
 model Challenge {
-  id           String        @id @default(cuid())
-  title        String
-  category     String
-  kind         String        @default("community")
-  schoolName   String?
-  schoolId     String?
-  location     String
-  description  String
+  id             String        @id @default(cuid())
+  title          String
+  category       String
+  kind           String        @default("community")
+  schoolName     String?
+  schoolId       String?
+  location       String
+  description    String
   peopleAffected String?
-  whyItMatters String?
-  possibleAreas String?
-  submittedById String?
-  difficulty   String        @default("Beginner")
-  duration     String        @default("2–3 weeks")
-  participants Int           @default(0)
-  color        String        @default("mint")
-  icon         String        @default("bulb")
-  status       String        @default("pending")
-  contactPhone String?
-  createdAt    DateTime      @default(now())
-  school       School?       @relation(fields: [schoolId], references: [id], onDelete: SetNull)
-  submittedBy  User?         @relation("ChallengeSubmitter", fields: [submittedById], references: [id], onDelete: SetNull)
-  projectBrief ProjectBrief?
-  teams        Team[]
-  submissions  Submission[]
+  whyItMatters   String?
+  possibleAreas  String?
+  submittedById  String?
+  difficulty     String        @default("Beginner")
+  duration       String        @default("2–3 weeks")
+  participants   Int           @default(0)
+  color          String        @default("mint")
+  icon           String        @default("bulb")
+  status         String        @default("pending")
+  contactPhone   String?
+  createdAt      DateTime      @default(now())
+  school         School?       @relation(fields: [schoolId], references: [id], onDelete: SetNull)
+  submittedBy    User?         @relation("ChallengeSubmitter", fields: [submittedById], references: [id], onDelete: SetNull)
+  projectBrief   ProjectBrief?
+  teams          Team[]
+  submissions    Submission[]
 
   @@index([schoolId])
   @@index([submittedById])
@@ -181,16 +181,16 @@ model Submission {
 }
 
 model Assessment {
-  id           String     @id @default(cuid())
-  submissionId String     @unique
-  teacherId    String
-  score        Int?
-  feedback     String
-  badge        String?
-  publiclyApproved Boolean @default(false)
-  createdAt    DateTime   @default(now())
-  submission   Submission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
-  teacher      User       @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  id               String     @id @default(cuid())
+  submissionId     String     @unique
+  teacherId        String
+  score            Int?
+  feedback         String
+  badge            String?
+  publiclyApproved Boolean    @default(false)
+  createdAt        DateTime   @default(now())
+  submission       Submission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  teacher          User       @relation(fields: [teacherId], references: [id], onDelete: Cascade)
 }
 
 model Notification {
