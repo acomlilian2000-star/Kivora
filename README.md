@@ -12,7 +12,7 @@ Requirements: Node.js 20.9 or later and npm.
    npm.cmd install
    ```
 
-2. The checked-out project includes a local `.env` for SQLite and development defaults. Copy `.env.example` to `.env` if you need to restore it.
+2. Copy `.env.example` to `.env`, then set `AUTH_SECRET` to a long random value and `TEACHER_INVITE_CODE` to a private invitation code. Keep `.env` local and never commit it. The SQLite database is created locally.
 3. Generate the Prisma client and create the local database:
 
    ```powershell
@@ -32,11 +32,14 @@ The local database is `prisma/dev.db`. It starts empty by design: no sample chal
 
 ## Demo flow
 
-1. On the dashboard choose **Share a challenge** and submit a community problem. It is stored with `pending` status.
-2. Open **Teacher review** and approve it. The challenge becomes visible to students.
-3. Open **Discover challenges**, select the challenge and generate a learning-project brief. Add an OpenAI API key first; the draft is saved and is not student-approved yet.
-4. In **Teacher review → Project briefs**, approve the generated brief.
-5. Use **Mobile access** only as a developer test of the callback. It is not a live shortcode.
+1. Register a teacher account with your `TEACHER_INVITE_CODE`.
+2. From **Manage learners**, create a supervised student account and securely give the learner the one-time login ID and password. The learner must change the password on first sign-in.
+3. Sign in as a community member (or submit through USSD) and share a real local challenge.
+4. As a teacher, open **Teacher review** and approve the challenge.
+5. As a student, discover the approved challenge, create a team and use **My projects** to plan a safe solution, local resources, materials, steps and expected outcomes.
+6. Submit real progress for teacher feedback. Public showcase sharing needs both learner opt-in and explicit teacher approval.
+7. Add an OpenAI API key to generate an age-appropriate project draft. A teacher must review AI output before it is assigned.
+8. Use **Mobile access** only as a developer test of the callback. It is not a live shortcode.
 
 ## Reaching a village on a basic phone
 
@@ -58,6 +61,8 @@ The `.env` file is local and ignored by Git. Never commit real API keys.
 | Variable | Required for | Local default |
 | --- | --- | --- |
 | `DATABASE_URL` | Prisma persistence | `file:./dev.db` (SQLite) |
+| `AUTH_SECRET` | Sign and encrypt login sessions | Generate a private random secret |
+| `TEACHER_INVITE_CODE` | Gate teacher self-registration | Choose a private invitation code |
 | `OPENAI_API_KEY` | OpenAI project generation | Empty until configured |
 | `OPENAI_MODEL` | OpenAI model | `gpt-4o-mini` |
 | `NEXT_PUBLIC_APP_URL` | Local app URL | `http://localhost:3000` |
@@ -74,6 +79,10 @@ Restart `npm.cmd run dev` after changing environment variables. AI generation re
 - `GET /api/dashboard/summary` — counts current stored challenges, teams and submissions (no seeded metrics).
 - `POST /api/challenges` — submit a challenge for teacher review.
 - `PATCH /api/challenges/:id` — teacher publishes a challenge.
+- `GET /api/teams` and `POST /api/teams` — supervised student teams and their project plans.
+- `PATCH /api/projects/:id` — update an owned project plan and project stage.
+- `POST /api/submissions` — submit project progress and learner-reported impact for review.
+- `PATCH /api/account/password` — change a supervised learner's one-time password.
 - `POST /api/impact-engine` — generate and save a structured OpenAI project-brief draft. Curriculum retrieval is inactive until real resources are added to the library.
 - `GET /api/project-briefs` and `PATCH /api/project-briefs/:id` — teacher review of AI briefs.
 - `POST /api/ussd` — Africa's Talking USSD callback and developer-only browser simulator.
@@ -84,6 +93,6 @@ Uganda alignment is informed by the [NCDC Lower Secondary Curriculum](https://nc
 
 The interface is designed mobile-first for rural connectivity constraints. The website itself still needs an internet connection; the separate USSD route is intended for basic phones without mobile data. The current UI and USSD prompts are in English; local-language versions should be co-designed and tested with Ugandan communities.
 
-This repository is a locally runnable hackathon MVP, not a production-ready deployment. SQLite keeps setup self-contained; before a shared deployment, switch Prisma to PostgreSQL and migrate the schema. Authentication/authorization is not implemented: teacher review and project endpoints are not protected and must not be exposed publicly until access controls are added. Project IDs are stored in the creating browser. The resources table is empty until a curriculum/library management workflow is added; AI briefs must not be described as retrieval-grounded until that source library exists.
+This repository is a locally runnable hackathon MVP, not a production-ready deployment. SQLite keeps setup self-contained; before a shared deployment, switch Prisma to PostgreSQL and migrate the schema. Authentication uses Auth.js credentials with role and teacher-invitation checks; accounts, school verification workflows, guardian consent and supervised moderation still need further production review. The resource library is empty until real curriculum materials are added; AI briefs must not be described as retrieval-grounded until that source library exists. File uploads and live Africa's Talking shortcode activation require provider configuration and are not represented as complete.
 
 AI output is an untrusted draft. A qualified teacher should check accuracy, age-appropriateness, curriculum alignment and safety before assigning a project.
