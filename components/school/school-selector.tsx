@@ -46,7 +46,7 @@ export default function SchoolSelector({ memberships }: { memberships: SchoolOpt
           onClick={() => void chooseSchool(membership.schoolId)}
         >
           <span className="school-selector-icon"><School size={18} /></span>
-          <span><strong>{membership.schoolName}</strong><small>{membership.district} · {membership.role.replaceAll("_", " ")}</small></span>
+          <span><strong>{membership.schoolName}</strong><small>{membership.district} · {membership.role.replace(/_/g, " ")}</small></span>
           {pendingSchool === membership.schoolId ? <span className="school-selector-pending">Opening…</span> : <ArrowRight size={16} />}
         </button>
       ))}
