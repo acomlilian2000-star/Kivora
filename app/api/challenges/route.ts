@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createChallenge, listChallenges, type ChallengeStatus } from "@/lib/challenges";
+import { sendSms } from "@/lib/africastalking";
 
 export const runtime = "nodejs";
 
@@ -27,12 +28,16 @@ export async function POST(request: Request) {
       category: body.category.trim(),
       location: body.location.trim(),
       description: body.description.trim(),
-      difficulty: "Beginner",
-      duration: "2–3 weeks",
-      color: "mint",
-      icon: "leaf",
+      contactPhone: typeof body.contactPhone === "string" ? body.contactPhone.trim() : undefined,
     });
-    return NextResponse.json({ challenge }, { status: 201 });
+    const notificationStatuses: string[] = [];
+    if (challenge.contactPhone) {
+      notificationStatuses.push(await sendSms(challenge.contactPhone, `KIVORA: "${challenge.title}" was received and is awaiting teacher review.`));
+    }
+    if (process.env.TEACHER_PHONE_NUMBER) {
+      notificationStatuses.push(await sendSms(process.env.TEACHER_PHONE_NUMBER, `KIVORA: New challenge awaiting review: "${challenge.title}".`));
+    }
+    return NextResponse.json({ challenge, notificationStatuses }, { status: 201 });
   } catch (error) {
     console.error("Could not create challenge:", error);
     return NextResponse.json({ error: "Could not submit your challenge." }, { status: 500 });

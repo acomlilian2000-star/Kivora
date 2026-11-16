@@ -1,57 +1,40 @@
-import { randomUUID } from "node:crypto";
-import { readFile, writeFile } from "node:fs/promises";
-import path from "node:path";
+import seedChallenges from "@/data/challenges.json";
+import { prisma } from "@/lib/prisma";
+import type { ChallengeStatus } from "@/lib/types";
 
-export type ChallengeStatus = "pending" | "published";
+export async function listChallenges(status?: ChallengeStatus) {
+  const count = await prisma.challenge.count();
+  if (count === 0) {
+    await prisma.challenge.createMany({
+      data: seedChallenges.map(({ createdAt, ...challenge }) => ({
+        ...challenge,
+        createdAt: new Date(createdAt),
+      })),
+    });
+  }
+  return prisma.challenge.findMany({
+    where: status ? { status } : undefined,
+    orderBy: { createdAt: "desc" },
+  });
+}
 
-export type ChallengeRecord = {
-  id: string;
+export async function createChallenge(input: {
   title: string;
   category: string;
   location: string;
   description: string;
-  difficulty: string;
-  duration: string;
-  participants: number;
-  color: string;
-  icon: "leaf" | "water" | "bulb";
-  status: ChallengeStatus;
-  createdAt: string;
-};
-
-const dataFile = path.join(process.cwd(), "data", "challenges.json");
-let writeQueue = Promise.resolve();
-
-export async function listChallenges(status?: ChallengeStatus) {
-  const contents = await readFile(dataFile, "utf8");
-  const challenges = JSON.parse(contents) as ChallengeRecord[];
-  return status ? challenges.filter((challenge) => challenge.status === status) : challenges;
-}
-
-export async function createChallenge(input: Omit<ChallengeRecord, "id" | "createdAt" | "status" | "participants">) {
-  const challenges = await listChallenges();
-  const challenge: ChallengeRecord = {
-    ...input,
-    id: randomUUID(),
-    participants: 0,
-    status: "pending",
-    createdAt: new Date().toISOString(),
-  };
-  await saveChallenges([challenge, ...challenges]);
-  return challenge;
+  contactPhone?: string;
+}) {
+  return prisma.challenge.create({
+    data: {
+      ...input,
+      contactPhone: input.contactPhone || null,
+    },
+  });
 }
 
 export async function publishChallenge(id: string) {
-  const challenges = await listChallenges();
-  const index = challenges.findIndex((challenge) => challenge.id === id);
-  if (index === -1) return null;
-  challenges[index] = { ...challenges[index], status: "published" };
-  await saveChallenges(challenges);
-  return challenges[index];
-}
-
-async function saveChallenges(challenges: ChallengeRecord[]) {
-  const write = writeQueue.then(() => writeFile(dataFile, `${JSON.stringify(challenges, null, 2)}\n`, "utf8"));
-  writeQueue = write.catch(() => undefined);
-  await write;
+  const challenge = await prisma.challenge.findUnique({ where: { id } });
+  if (!challenge) return null;
+  return prisma.challenge.update({ where: { id }, data: { status: "published" } });
 }

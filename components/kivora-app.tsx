@@ -26,6 +26,7 @@ import {
   Plus,
   Search,
   Send,
+  Smartphone,
   Sparkles,
   Sprout,
   Target,
@@ -34,13 +35,14 @@ import {
 } from "lucide-react";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 
-type View = "Home" | "Discover challenges" | "My projects" | "Impact stories" | "Teacher review" | "Submit a challenge";
+type View = "Home" | "Discover challenges" | "My projects" | "Impact stories" | "Teacher review" | "Mobile access" | "Submit a challenge";
 type Challenge = {
   id?: string;
   status?: "pending" | "published";
   title: string;
   category: string;
   location: string;
+  contactPhone?: string;
   description: string;
   difficulty: string;
   duration: string;
@@ -91,6 +93,7 @@ const navItems: { label: View; icon: typeof Activity; group?: string }[] = [
   { label: "My projects", icon: FileText },
   { label: "Impact stories", icon: Globe2, group: "COMMUNITY" },
   { label: "Teacher review", icon: GraduationCap, group: "FOR EDUCATORS" },
+  { label: "Mobile access", icon: Smartphone, group: "COMMUNITY" },
 ];
 
 function Logo() {
@@ -316,7 +319,18 @@ function ImpactView() {
 function TeacherReview({ challenges, onApprove }: { challenges: Challenge[]; onApprove: (challenge: Challenge) => Promise<void> }) {
   const [approving, setApproving] = useState<string | null>(null);
   const [error, setError] = useState("");
+  const [tab, setTab] = useState<"challenges" | "briefs">("challenges");
+  const [briefs, setBriefs] = useState<Array<{ id: string; projectTitle: string; subjects: string; objectives: string; activities: string; assessment: string; challenge: { title: string } }>>([]);
   const pending = challenges.filter((challenge) => challenge.status === "pending");
+  useEffect(() => {
+    fetch("/api/project-briefs")
+      .then(async (response) => {
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || "Could not load project briefs.");
+        setBriefs(result.briefs);
+      })
+      .catch((reason: unknown) => setError(reason instanceof Error ? reason.message : "Could not load project briefs."));
+  }, []);
   const handleApprove = async (challenge: Challenge) => {
     if (!challenge.id) return;
     setApproving(challenge.id);
@@ -329,13 +343,32 @@ function TeacherReview({ challenges, onApprove }: { challenges: Challenge[]; onA
       setApproving(null);
     }
   };
-  return <div className="inner-view"><div className="page-intro"><div><p className="section-kicker">GUIDE THE NEXT GENERATION</p><h1>Teacher review</h1><p>Review community challenges before they become learning opportunities.</p></div><div className="review-count-card"><span>AWAITING YOUR REVIEW</span><strong>{pending.length}<small> submissions</small></strong></div></div><div className="review-tabs"><button className="review-tab active">Needs review <span>{pending.length}</span></button><button className="review-tab">Project briefs <span>0</span></button><button className="review-tab">Recently approved</button></div>{error && <p className="form-error" role="alert">{error}</p>}<div className="review-list">{pending.map((item) => <article className="review-card" key={item.id}><div className="review-avatar">KI</div><div className="review-card-main"><div className="review-meta"><span>{item.category.toUpperCase()}</span><span>·</span><span>Community submission</span></div><h3>{item.title}</h3><p>{item.location}</p><div className="review-description">“{item.description}”</div></div><div className="review-actions"><button className="button button-outline small-button" disabled={approving === item.id} onClick={() => void handleApprove(item)}>{approving === item.id ? "Approving…" : "Approve challenge"} <Check size={15} /></button><span className="review-text-button">Teacher approval required</span></div></article>)}{pending.length === 0 && <div className="empty-state"><Check size={23} /><strong>You’re all caught up</strong><span>New community challenges will show up here.</span></div>}</div><div className="ai-note"><Sparkles size={17} /><span><strong>AI-assisted, teacher-approved.</strong> KIVORA can suggest learning objectives and activities, but you stay in control of what students see.</span></div></div>;
+  const approveBrief = async (id: string) => {
+    setApproving(id);
+    setError("");
+    try {
+      const response = await fetch(`/api/project-briefs/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ approved: true }),
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || "Could not approve this project brief.");
+      setBriefs((current) => current.filter((brief) => brief.id !== id));
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "Could not approve this project brief.");
+    } finally {
+      setApproving(null);
+    }
+  };
+  return <div className="inner-view"><div className="page-intro"><div><p className="section-kicker">GUIDE THE NEXT GENERATION</p><h1>Teacher review</h1><p>Review challenges and AI-generated projects before students use them.</p></div><div className="review-count-card"><span>AWAITING YOUR REVIEW</span><strong>{pending.length + briefs.length}<small> submissions</small></strong></div></div><div className="review-tabs"><button className={`review-tab ${tab === "challenges" ? "active" : ""}`} onClick={() => setTab("challenges")}>Challenges <span>{pending.length}</span></button><button className={`review-tab ${tab === "briefs" ? "active" : ""}`} onClick={() => setTab("briefs")}>Project briefs <span>{briefs.length}</span></button></div>{error && <p className="form-error" role="alert">{error}</p>}{tab === "challenges" ? <div className="review-list">{pending.map((item) => <article className="review-card" key={item.id}><div className="review-avatar">KI</div><div className="review-card-main"><div className="review-meta"><span>{item.category.toUpperCase()}</span><span>·</span><span>Community submission</span></div><h3>{item.title}</h3><p>{item.location}</p><div className="review-description">“{item.description}”</div></div><div className="review-actions"><button className="button button-outline small-button" disabled={approving === item.id} onClick={() => void handleApprove(item)}>{approving === item.id ? "Approving…" : "Approve challenge"} <Check size={15} /></button><span className="review-text-button">Teacher approval required</span></div></article>)}{pending.length === 0 && <div className="empty-state"><Check size={23} /><strong>You’re all caught up</strong><span>New community challenges will show up here.</span></div>}</div> : <div className="review-list">{briefs.map((brief) => <article className="review-card" key={brief.id}><div className="review-avatar"><Sparkles size={15} /></div><div className="review-card-main"><div className="review-meta"><span>AI PROJECT BRIEF</span><span>·</span><span>For {brief.challenge.title}</span></div><h3>{brief.projectTitle}</h3><p>Subjects: {JSON.parse(brief.subjects).join(", ")}</p><div className="review-description">Objectives: {JSON.parse(brief.objectives).join(" · ")}</div></div><div className="review-actions"><button className="button button-outline small-button" disabled={approving === brief.id} onClick={() => void approveBrief(brief.id)}>{approving === brief.id ? "Approving…" : "Approve project"} <Check size={15} /></button><span className="review-text-button">Teacher review required</span></div></article>)}{briefs.length === 0 && <div className="empty-state"><Check size={23} /><strong>No project briefs to review</strong><span>Generate a brief from a published challenge to begin.</span></div>}</div>}<div className="ai-note"><Sparkles size={17} /><span><strong>AI-assisted, teacher-approved.</strong> Generated learning projects remain drafts until a teacher approves them.</span></div></div>;
 }
 
 function SubmitChallenge({ onSubmit, onCancel }: { onSubmit: (challenge: Challenge) => Promise<void>; onCancel: () => void }) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [location, setLocation] = useState("");
+  const [contactPhone, setContactPhone] = useState("");
   const [category, setCategory] = useState("Environment");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
@@ -344,7 +377,7 @@ function SubmitChallenge({ onSubmit, onCancel }: { onSubmit: (challenge: Challen
     setSubmitting(true);
     setError("");
     try {
-      await onSubmit({ title, description, location, category, difficulty: "Beginner", duration: "2–3 weeks", participants: 0, color: "mint", icon: "leaf", status: "pending" });
+      await onSubmit({ title, description, location, contactPhone, category, difficulty: "Beginner", duration: "2–3 weeks", participants: 0, color: "mint", icon: "leaf", status: "pending" });
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : "Could not submit this challenge.");
     } finally {
