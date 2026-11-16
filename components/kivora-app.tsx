@@ -495,10 +495,63 @@ function TeacherReview({ challenges, onApprove }: { challenges: Challenge[]; onA
     }
   };
   const reviewContent = tab === "challenges"
-    ? <div className="review-list">{pending.map((item) => <article className="review-card" key={item.id}><div className="review-avatar">KI</div><div className="review-card-main"><div className="review-meta"><span>{item.category.toUpperCase()}</span><span>·</span><span>Community submission</span></div><h3>{item.title}</h3><p>{item.location}</p><div className="review-description">“{item.description}”</div></div><div className="review-actions"><button className="button button-outline small-button" disabled={approving === item.id} onClick={() => void handleApprove(item)}>{approving === item.id ? "Approving…" : "Approve challenge"} <Check size={15} /></button><span className="review-text-button">Teacher approval required</span></div></article>)}{pending.length === 0 && <div className="empty-state"><Check size={23} /><strong>You’re all caught up</strong><span>New community challenges will show up here.</span></div>}</div>
+    ? (
+      <div className="review-list">
+        {pending.map((item) => (
+          <article className="review-card" key={item.id}>
+            <div className="review-avatar">KI</div>
+            <div className="review-card-main">
+              <div className="review-meta"><span>{item.category.toUpperCase()}</span><span>·</span><span>Community submission</span></div>
+              <h3>{item.title}</h3><p>{item.location}</p>
+              <div className="review-description">“{item.description}”</div>
+            </div>
+            <div className="review-actions">
+              <button className="button button-outline small-button" disabled={approving === item.id} onClick={() => void handleApprove(item)}>
+                {approving === item.id ? "Approving…" : "Approve challenge"} <Check size={15} />
+              </button>
+              <span className="review-text-button">Teacher approval required</span>
+            </div>
+          </article>
+        ))}
+        {pending.length === 0 && <div className="empty-state"><Check size={23} /><strong>You’re all caught up</strong><span>New community challenges will show up here.</span></div>}
+      </div>
+    )
     : tab === "briefs"
-      ? <div className="review-list">{briefs.map((brief) => <article className="review-card" key={brief.id}><div className="review-avatar"><Sparkles size={15} /></div><div className="review-card-main"><div className="review-meta"><span>AI PROJECT BRIEF</span><span>·</span><span>For {brief.challenge.title}</span></div><h3>{brief.projectTitle}</h3><p>Subjects: {JSON.parse(brief.subjects).join(", ")}</p><div className="review-description">Objectives: {JSON.parse(brief.objectives).join(" · ")}</div></div><div className="review-actions"><button className="button button-outline small-button" disabled={approving === brief.id} onClick={() => void approveBrief(brief.id)}>{approving === brief.id ? "Approving…" : "Approve project"} <Check size={15} /></button><span className="review-text-button">Teacher review required</span></div></article>)}{briefs.length === 0 && <div className="empty-state"><Check size={23} /><strong>No project briefs to review</strong><span>Generate a brief from a published challenge to begin.</span></div>}</div>
-      : <div className="review-list">{submissions.map((submission) => <SubmissionReviewCard key={submission.id} submission={submission} onReviewed={() => setSubmissions((current) => current.filter((item) => item.id !== submission.id))} />)}{submissions.length === 0 && <div className="empty-state"><Check size={23} /><strong>No student work to review</strong><span>Student project submissions will appear here.</span></div>}</div>;
+      ? (
+        <div className="review-list">
+          {briefs.map((brief) => (
+            <article className="review-card" key={brief.id}>
+              <div className="review-avatar"><Sparkles size={15} /></div>
+              <div className="review-card-main">
+                <div className="review-meta"><span>AI PROJECT BRIEF</span><span>·</span><span>For {brief.challenge.title}</span></div>
+                <h3>{brief.projectTitle}</h3>
+                <p>{brief.learnerLevel} · {JSON.parse(brief.subjects).join(", ")}</p>
+                <div className="review-description">
+                  Competencies: {JSON.parse(brief.competencies).join(" · ")}<br />
+                  Learning objectives: {JSON.parse(brief.objectives).join(" · ")}<br />
+                  Community project steps: {JSON.parse(brief.activities).join(" · ")}<br />
+                  Assessment: {JSON.parse(brief.assessment).join(" · ")}
+                </div>
+              </div>
+              <div className="review-actions">
+                <button className="button button-outline small-button" disabled={approving === brief.id} onClick={() => void approveBrief(brief.id)}>
+                  {approving === brief.id ? "Approving…" : "Approve project"} <Check size={15} />
+                </button>
+                <span className="review-text-button">Teacher review required</span>
+              </div>
+            </article>
+          ))}
+          {briefs.length === 0 && <div className="empty-state"><Check size={23} /><strong>No project briefs to review</strong><span>Generate a brief from a published challenge to begin.</span></div>}
+        </div>
+      )
+      : (
+        <div className="review-list">
+          {submissions.map((submission) => (
+            <SubmissionReviewCard key={submission.id} submission={submission} onReviewed={() => setSubmissions((current) => current.filter((item) => item.id !== submission.id))} />
+          ))}
+          {submissions.length === 0 && <div className="empty-state"><Check size={23} /><strong>No student work to review</strong><span>Student project submissions will appear here.</span></div>}
+        </div>
+      );
   return (
     <div className="inner-view">
       <div className="page-intro"><div><p className="section-kicker">GUIDE THE NEXT GENERATION</p><h1>Teacher review</h1><p>Review challenges, AI-generated projects and student work.</p></div><div className="review-count-card"><span>AWAITING YOUR REVIEW</span><strong>{pending.length + briefs.length + submissions.length}<small> items</small></strong></div></div>
