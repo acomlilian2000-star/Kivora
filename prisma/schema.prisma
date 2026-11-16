@@ -13,6 +13,7 @@ model User {
   email               String?           @unique
   loginId             String?           @unique
   passwordHash        String?
+  mustChangePassword Boolean          @default(false)
   role                String            @default("student")
   school              String?
   createdAt           DateTime          @default(now())

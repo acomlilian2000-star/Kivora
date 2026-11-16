@@ -58,6 +58,7 @@ export async function POST(request: Request) {
         email,
         passwordHash: await hash(password, 12),
         role,
+        school: school?.name,
         ...(role === "teacher"
           ? { teacherProfile: { create: { verified: true, schoolId: school?.id } } }
           : { communityProfile: { create: {} } }),

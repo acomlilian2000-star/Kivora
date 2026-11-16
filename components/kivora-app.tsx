@@ -41,9 +41,10 @@ import InnovationMentor from "@/components/student/innovation-mentor";
 import InnovationShowcase from "@/components/student/innovation-showcase";
 import ResourceFinder from "@/components/student/resource-finder";
 import StudentHome from "@/components/student/student-home";
+import StudentAccess from "@/components/teacher/student-access";
 import type { ProjectBrief } from "@/lib/types";
 
-type View = "Home" | "Problem discovery" | "AI mentor" | "Resource finder" | "Project builder" | "Innovation showcase" | "Impact tracker" | "School challenges" | "Teacher review" | "Mobile access" | "Submit a challenge" | "Discover challenges" | "My projects" | "Impact stories";
+type View = "Home" | "Problem discovery" | "AI mentor" | "Resource finder" | "Project builder" | "Innovation showcase" | "Impact tracker" | "School challenges" | "Teacher review" | "Manage learners" | "Mobile access" | "Submit a challenge" | "Discover challenges" | "My projects" | "Impact stories";
 type Challenge = {
   id?: string;
   status?: "pending" | "published";
@@ -81,7 +82,7 @@ const navGroups: { title: string; items: { label: View; icon: typeof Activity }[
   { title: "Make", items: [{ label: "AI mentor", icon: MessageSquareText }, { label: "Resource finder", icon: BookOpen }, { label: "Project builder", icon: Lightbulb }] },
   { title: "Share", items: [{ label: "Innovation showcase", icon: Globe2 }, { label: "Impact tracker", icon: Heart }] },
   { title: "Community", items: [{ label: "Submit a challenge", icon: MessageSquareText }, { label: "Mobile access", icon: Smartphone }] },
-  { title: "For educators", items: [{ label: "Teacher review", icon: GraduationCap }] },
+  { title: "For educators", items: [{ label: "Teacher review", icon: GraduationCap }, { label: "Manage learners", icon: Users }] },
 ];
 
 function Logo() {
@@ -113,7 +114,7 @@ function Sidebar({
 }) {
   const [collapsedGroups, setCollapsedGroups] = useState<string[]>([]);
   const allowedViews = role === "teacher" || role === "admin"
-    ? new Set<View>(["Home", "Problem discovery", "AI mentor", "Resource finder", "Project builder", "Innovation showcase", "Impact tracker", "School challenges", "Teacher review", "Mobile access", "Submit a challenge"])
+    ? new Set<View>(["Home", "Problem discovery", "AI mentor", "Resource finder", "Project builder", "Innovation showcase", "Impact tracker", "School challenges", "Teacher review", "Manage learners", "Mobile access", "Submit a challenge"])
     : role === "community"
       ? new Set<View>(["Home", "Problem discovery", "School challenges", "Innovation showcase", "Impact tracker", "Mobile access", "Submit a challenge"])
       : new Set<View>(["Home", "Problem discovery", "AI mentor", "Resource finder", "Project builder", "Innovation showcase", "Impact tracker", "School challenges", "Mobile access", "Submit a challenge"]);
@@ -832,6 +833,11 @@ export default function KivoraApp({ role }: { role: string }) {
           }));
           notify(`“${challenge.title}” approved for learning`);
         }} />;
+      case "Manage learners":
+        if (role !== "teacher" && role !== "admin") {
+          return <div className="empty-state"><GraduationCap size={23} /><strong>Teacher access only</strong><span>Only verified teachers can create supervised learner accounts.</span></div>;
+        }
+        return <StudentAccess />;
       case "Mobile access":
         return <MobileAccess />;
       case "Submit a challenge":
@@ -898,6 +904,7 @@ const viewLabels: View[] = [
   "Impact tracker",
   "School challenges",
   "Teacher review",
+  "Manage learners",
   "Mobile access",
   "Submit a challenge",
   "Discover challenges",

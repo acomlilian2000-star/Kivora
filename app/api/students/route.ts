@@ -6,6 +6,31 @@ import { prisma } from "@/lib/prisma";
 
 export const runtime = "nodejs";
 
+export async function GET() {
+  const { user, response } = await requireUser(["teacher"]);
+  if (response || !user) return response;
+
+  try {
+    const students = await prisma.user.findMany({
+      where: {
+        role: "student",
+        studentProfile: { is: { supervisingTeacherId: user.id } },
+      },
+      select: {
+        id: true,
+        name: true,
+        loginId: true,
+        studentProfile: { select: { classLevel: true, educationLevel: true } },
+      },
+      orderBy: { name: "asc" },
+    });
+    return NextResponse.json({ students });
+  } catch (error) {
+    console.error("Could not load supervised students:", error);
+    return NextResponse.json({ error: "Could not load your learner list." }, { status: 500 });
+  }
+}
+
 export async function POST(request: Request) {
   const { user, response } = await requireUser(["teacher"]);
   if (response || !user) return response;
@@ -40,6 +65,7 @@ export async function POST(request: Request) {
         name: displayName,
         loginId,
         passwordHash: await hash(temporaryPassword, 12),
+        mustChangePassword: true,
         role: "student",
         school: teacher.school,
         studentProfile: {
