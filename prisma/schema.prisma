@@ -22,6 +22,7 @@ model User {
   mentorProfile      MentorProfile?
   supervisedStudents StudentProfile[]  @relation("SupervisedStudents")
   createdTeams       Team[]            @relation("TeamCreator")
+  submittedChallenges Challenge[]         @relation("ChallengeSubmitter")
   teamMembers        TeamMember[]
   assessments        Assessment[]
   notifications      Notification[]
@@ -34,6 +35,7 @@ model School {
   createdAt DateTime         @default(now())
   students  StudentProfile[]
   teachers  TeacherProfile[]
+  challenges Challenge[]
 
   @@unique([name, district])
   @@index([district])
@@ -87,8 +89,13 @@ model Challenge {
   category     String
   kind         String        @default("community")
   schoolName   String?
+  schoolId     String?
   location     String
   description  String
+  peopleAffected String?
+  whyItMatters String?
+  possibleAreas String?
+  submittedById String?
   difficulty   String        @default("Beginner")
   duration     String        @default("2–3 weeks")
   participants Int           @default(0)
@@ -97,9 +104,15 @@ model Challenge {
   status       String        @default("pending")
   contactPhone String?
   createdAt    DateTime      @default(now())
+  school       School?       @relation(fields: [schoolId], references: [id], onDelete: SetNull)
+  submittedBy  User?         @relation("ChallengeSubmitter", fields: [submittedById], references: [id], onDelete: SetNull)
   projectBrief ProjectBrief?
   teams        Team[]
   submissions  Submission[]
+
+  @@index([schoolId])
+  @@index([submittedById])
+  @@index([status, kind])
 }
 
 model ProjectBrief {

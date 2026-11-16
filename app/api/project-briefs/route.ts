@@ -1,7 +1,11 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { requireUser } from "@/lib/authorization";
 
 export async function GET() {
+  const { user, response } = await requireUser(["teacher", "admin"]);
+  if (response || !user) return response;
+
   try {
     const briefs = await prisma.projectBrief.findMany({
       where: { approved: false },

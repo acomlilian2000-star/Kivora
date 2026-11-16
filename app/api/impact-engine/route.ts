@@ -1,10 +1,14 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { generateProjectBrief } from "@/lib/ai/project-brief";
+import { requireUser } from "@/lib/authorization";
 
 export const runtime = "nodejs";
 
 export async function POST(request: Request) {
+  const { user, response } = await requireUser(["student", "teacher"]);
+  if (response || !user) return response;
+
   try {
     const body: unknown = await request.json();
     if (!body || typeof body !== "object" || typeof (body as { title?: unknown }).title !== "string" || typeof (body as { description?: unknown }).description !== "string") {
@@ -38,6 +42,9 @@ export async function POST(request: Request) {
         competencies: JSON.stringify(brief.competencies),
         objectives: JSON.stringify(brief.objectives),
         activities: JSON.stringify(brief.activities),
+        materials: JSON.stringify(brief.materials),
+        timeline: JSON.stringify(brief.timeline),
+        expectedOutcomes: JSON.stringify(brief.expectedOutcomes),
         assessment: JSON.stringify(brief.assessment),
         safetyNote: brief.safetyNote,
         model: process.env.OPENAI_MODEL || "gpt-4o-mini",
@@ -49,6 +56,9 @@ export async function POST(request: Request) {
         competencies: JSON.stringify(brief.competencies),
         objectives: JSON.stringify(brief.objectives),
         activities: JSON.stringify(brief.activities),
+        materials: JSON.stringify(brief.materials),
+        timeline: JSON.stringify(brief.timeline),
+        expectedOutcomes: JSON.stringify(brief.expectedOutcomes),
         assessment: JSON.stringify(brief.assessment),
         safetyNote: brief.safetyNote,
         model: process.env.OPENAI_MODEL || "gpt-4o-mini",

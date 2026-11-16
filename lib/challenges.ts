@@ -8,7 +8,7 @@ export async function listChallenges(status?: ChallengeStatus) {
     orderBy: { createdAt: "desc" },
     include: { _count: { select: { teams: true } } },
   });
-  return challenges.map(({ _count, ...challenge }) => ({
+  return challenges.map(({ _count, contactPhone, submittedById, ...challenge }) => ({
     ...challenge,
     participants: _count.teams,
   }));
@@ -20,6 +20,12 @@ export async function createChallenge(input: {
   location: string;
   description: string;
   contactPhone?: string;
+  kind?: "community" | "school";
+  schoolName?: string;
+  peopleAffected?: string;
+  whyItMatters?: string;
+  possibleAreas?: string;
+  submittedById?: string;
 }) {
   return prisma.challenge.create({
     data: {
@@ -27,6 +33,11 @@ export async function createChallenge(input: {
       color: "blue",
       icon: "bulb",
       contactPhone: input.contactPhone || null,
+      schoolName: input.schoolName || null,
+      peopleAffected: input.peopleAffected || null,
+      whyItMatters: input.whyItMatters || null,
+      possibleAreas: input.possibleAreas || null,
+      submittedById: input.submittedById || null,
     },
   });
 }

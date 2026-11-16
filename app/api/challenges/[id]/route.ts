@@ -2,10 +2,14 @@ import { NextResponse } from "next/server";
 import { publishChallenge } from "@/lib/challenges";
 import { prisma } from "@/lib/prisma";
 import { sendSms } from "@/lib/africastalking";
+import { requireUser } from "@/lib/authorization";
 
 export const runtime = "nodejs";
 
 export async function PATCH(request: Request, context: { params: Promise<{ id: string }> }) {
+  const { user, response } = await requireUser(["teacher", "admin"]);
+  if (response || !user) return response;
+
   try {
     const body: unknown = await request.json();
     if (!body || typeof body !== "object" || (body as { status?: unknown }).status !== "published") {

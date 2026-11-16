@@ -13,6 +13,8 @@ export default function RegisterForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [inviteCode, setInviteCode] = useState("");
+  const [schoolName, setSchoolName] = useState("");
+  const [district, setDistrict] = useState("");
   const [error, setError] = useState("");
   const [pending, setPending] = useState(false);
 
@@ -24,7 +26,7 @@ export default function RegisterForm() {
       const response = await fetch("/api/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, password, role, inviteCode }),
+        body: JSON.stringify({ name, email, password, role, inviteCode, schoolName, district }),
       });
       const result = await response.json();
       if (!response.ok) throw new Error(result.error || "Could not create your account.");
@@ -66,6 +68,14 @@ export default function RegisterForm() {
           {role === "teacher" && <label className="form-label">Teacher invitation code
             <input required autoComplete="off" value={inviteCode} onChange={(event) => setInviteCode(event.target.value)} />
           </label>}
+          {role === "teacher" && <div className="form-two-col">
+            <label className="form-label">School name
+              <input required maxLength={120} value={schoolName} onChange={(event) => setSchoolName(event.target.value)} />
+            </label>
+            <label className="form-label">District
+              <input required maxLength={80} value={district} onChange={(event) => setDistrict(event.target.value)} />
+            </label>
+          </div>}
           {error && <p className="form-error" role="alert">{error}</p>}
           <button className="button button-dark full-button" disabled={pending}>
             {pending ? "Creating account…" : "Create account"} {!pending && <ArrowRight size={15} />}

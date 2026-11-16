@@ -1,7 +1,11 @@
 import { NextResponse } from "next/server";
+import { requireUser } from "@/lib/authorization";
 import { prisma } from "@/lib/prisma";
 
 export async function GET() {
+  const { user, response } = await requireUser(["teacher", "admin"]);
+  if (response || !user) return response;
+
   try {
     const submissions = await prisma.submission.findMany({
       where: { status: "submitted" },
@@ -16,6 +20,9 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  const { user, response } = await requireUser(["student"]);
+  if (response || !user) return response;
+
   try {
     const body: unknown = await request.json();
     if (!body || typeof body !== "object") return NextResponse.json({ error: "Submission details are required." }, { status: 400 });
@@ -28,13 +35,25 @@ export async function POST(request: Request) {
     if (!Array.isArray(evidence) || evidence.length > 5 || !evidence.every((item) => typeof item === "string" && /^https?:\/\//i.test(item))) {
       return NextResponse.json({ error: "Evidence must be up to five web links." }, { status: 400 });
     }
-    const team = await prisma.team.findUnique({ where: { id: input.teamId } });
+    const team = await prisma.team.findFirst({
+      where: {
+        id: input.teamId,
+        OR: [
+          { ownerId: user.id },
+          { members: { some: { userId: user.id } } },
+        ],
+      },
+    });
     if (!team) return NextResponse.json({ error: "The project team could not be found." }, { status: 404 });
     const submission = await prisma.submission.create({
       data: {
         title: input.title.trim(),
         description: input.description.trim(),
         evidence: JSON.stringify(evidence),
+        peopleHelped: (input.peopleHelped as number | undefined) ?? 0,
+        materialsReused: (input.materialsReused as number | undefined) ?? 0,
+        problemsAddressed: (input.problemsAddressed as number | undefined) ?? 0,
+        sharedPublicly: input.sharePublicly === true,
         teamId: input.teamId,
         challengeId: team.challengeId,
       },

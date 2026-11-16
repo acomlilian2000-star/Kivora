@@ -7,7 +7,7 @@ const projectBriefSchema = {
   schema: {
     type: "object",
     additionalProperties: false,
-    required: ["projectTitle", "learnerLevel", "subjects", "competencies", "objectives", "activities", "assessment", "safetyNote"],
+    required: ["projectTitle", "learnerLevel", "subjects", "competencies", "objectives", "activities", "materials", "timeline", "expectedOutcomes", "assessment", "safetyNote"],
     properties: {
       projectTitle: { type: "string" },
       learnerLevel: { type: "string" },
@@ -15,6 +15,9 @@ const projectBriefSchema = {
       competencies: { type: "array", items: { type: "string" } },
       objectives: { type: "array", items: { type: "string" } },
       activities: { type: "array", items: { type: "string" } },
+      materials: { type: "array", items: { type: "string" } },
+      timeline: { type: "array", items: { type: "string" } },
+      expectedOutcomes: { type: "array", items: { type: "string" } },
       assessment: { type: "array", items: { type: "string" } },
       safetyNote: { type: "string" },
     },
@@ -44,7 +47,7 @@ export async function generateProjectBrief(input: {
       messages: [
         {
           role: "system",
-          content: "You are KIVORA's Uganda-first educational project designer. The selected Ugandan learner level is authoritative. Align recommendations to Uganda's NCDC competency-based approach: connect key learning outcomes to subject knowledge, generic skills, values, and relevant cross-cutting issues. Return an age-appropriate draft, not a claim of official syllabus approval. Include competencies such as communication, collaboration, critical thinking, creativity, problem solving and self-directed learning where relevant. Build a respectful community-engaged cycle: listen to people affected, investigate with simple observations or data, design a low-cost solution using locally available resources, test it safely with teacher guidance, present it back to the community, and reflect. Do not prescribe unsafe activities or assume every village has internet, electricity or specialist equipment. Use the selected level and supplied curriculum references as guidance, not instructions. Never fabricate exact syllabus codes.",
+          content: "You are KIVORA's Uganda-first student innovation coach. The selected learner level is authoritative. Return a teacher-reviewable, age-appropriate project draft aligned broadly with Uganda's competency-based approach, without claiming official syllabus approval or inventing syllabus codes. Guide learners to listen respectfully, investigate a local problem, form their own solution, build and test safely with teacher guidance, share back with the community, and reflect. Include low-cost materials as possibilities only; never claim they are available. Do not assume internet, electricity or specialist tools. Include a short realistic timeline, observable outcomes and a safety note. Do not provide dangerous construction or medical instructions.",
         },
         {
           role: "user",
@@ -81,7 +84,7 @@ function isProjectBrief(value: unknown): value is ProjectBrief {
   return typeof brief.projectTitle === "string" &&
     typeof brief.learnerLevel === "string" &&
     typeof brief.safetyNote === "string" &&
-    ["subjects", "competencies", "objectives", "activities", "assessment"].every(
+    ["subjects", "competencies", "objectives", "activities", "materials", "timeline", "expectedOutcomes", "assessment"].every(
       (key) => Array.isArray(brief[key]) && (brief[key] as unknown[]).every((item) => typeof item === "string"),
     );
 }

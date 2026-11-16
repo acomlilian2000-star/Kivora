@@ -18,6 +18,7 @@ import {
   Heart,
   Leaf,
   Lightbulb,
+  LogOut,
   MapPin,
   Menu,
   MessageSquareText,
@@ -32,6 +33,7 @@ import {
   X,
 } from "lucide-react";
 import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
+import { signOut } from "next-auth/react";
 import MobileAccess from "@/components/dashboard/mobile-access";
 import ProjectBriefPreview from "@/components/dashboard/project-brief-preview";
 import type { ProjectBrief } from "@/lib/types";
@@ -78,6 +80,7 @@ function Logo() {
 
 function Sidebar({
   active,
+  role,
   onNavigate,
   mobileOpen,
   onClose,
@@ -85,6 +88,7 @@ function Sidebar({
   pendingReviewCount,
 }: {
   active: View;
+  role: string;
   onNavigate: (view: View) => void;
   mobileOpen: boolean;
   onClose: () => void;
@@ -92,6 +96,11 @@ function Sidebar({
   pendingReviewCount: number;
 }) {
   const [collapsedGroups, setCollapsedGroups] = useState<string[]>([]);
+  const allowedViews = role === "teacher" || role === "admin"
+    ? new Set<View>(["Home", "Discover challenges", "My projects", "Impact stories", "Teacher review", "Mobile access", "Submit a challenge"])
+    : role === "community"
+      ? new Set<View>(["Home", "Discover challenges", "Impact stories", "Mobile access", "Submit a challenge"])
+      : new Set<View>(["Home", "Discover challenges", "My projects", "Impact stories", "Mobile access", "Submit a challenge"]);
   const toggleGroup = (title: string) => setCollapsedGroups((current) =>
     current.includes(title) ? current.filter((item) => item !== title) : [...current, title],
   );
@@ -109,13 +118,15 @@ function Sidebar({
         </div>
         <nav className="side-nav" aria-label="Main navigation">
           {navGroups.map(({ title, items }) => {
+            const visibleItems = items.filter(({ label }) => allowedViews.has(label));
+            if (!visibleItems.length) return null;
             const collapsed = collapsedGroups.includes(title);
             return (
               <section className="nav-section" key={title}>
                 <button className="nav-group-toggle" aria-expanded={!collapsed} onClick={() => toggleGroup(title)}>
                   <span>{title}</span><ChevronDown size={13} className={collapsed ? "nav-group-chevron collapsed" : "nav-group-chevron"} />
                 </button>
-                {!collapsed && items.map(({ label, icon: Icon }) => (
+                {!collapsed && visibleItems.map(({ label, icon: Icon }) => (
                   <button
                     className={`nav-link ${active === label ? "nav-link-active" : ""}`}
                     key={label}
@@ -137,6 +148,7 @@ function Sidebar({
             <div><strong>Community activity</strong><span>{openChallengeCount} open challenge{openChallengeCount === 1 ? "" : "s"}</span></div>
           </div>
           <button className="nav-link help-link" onClick={() => onNavigate("Mobile access")}><CircleHelp size={18} /><span>Basic-phone access</span></button>
+          <button className="nav-link help-link" onClick={() => void signOut({ callbackUrl: "/" })}><LogOut size={18} /><span>Sign out</span></button>
         </div>
       </aside>
     </>
@@ -323,17 +335,7 @@ function ProjectsView() {
   const [teams, setTeams] = useState<StudentTeam[]>([]);
   const [error, setError] = useState("");
   useEffect(() => {
-    let teamIds: string[] = [];
-    try {
-      const saved = JSON.parse(localStorage.getItem("kivora-team-ids") ?? "[]") as unknown;
-      if (Array.isArray(saved)) teamIds = saved.filter((id): id is string => typeof id === "string");
-    } catch (reason) {
-      console.error("Could not read saved project IDs:", reason);
-      setError("Saved project references could not be read from this browser.");
-      return;
-    }
-    if (!teamIds.length) return;
-    fetch(`/api/teams?ids=${encodeURIComponent(teamIds.join(","))}`)
+    fetch("/api/teams")
       .then(async (response) => {
         const result = await response.json();
         if (!response.ok) throw new Error(result.error || "Could not load projects.");
@@ -674,7 +676,7 @@ function Toast({ message, onDismiss }: { message: string; onDismiss: () => void 
   return <div className="toast"><span><Check size={16} /></span><strong>{message}</strong><button className="icon-button" onClick={onDismiss} aria-label="Dismiss"><X size={16} /></button></div>;
 }
 
-export default function KivoraApp() {
+export default function KivoraApp({ role }: { role: string }) {
   const [activeView, setActiveView] = useState<View>("Home");
   const [mobileOpen, setMobileOpen] = useState(false);
   const [search, setSearch] = useState("");
@@ -727,6 +729,9 @@ export default function KivoraApp() {
       case "Impact stories":
         return <ImpactView />;
       case "Teacher review":
+        if (role !== "teacher" && role !== "admin") {
+          return <div className="empty-state"><GraduationCap size={23} /><strong>Teacher access only</strong><span>Sign in with a verified teacher account to review work.</span></div>;
+        }
         return <TeacherReview challenges={challenges} onApprove={async (challenge) => {
           const response = await fetch(`/api/challenges/${challenge.id}`, {
             method: "PATCH",
@@ -762,11 +767,12 @@ export default function KivoraApp() {
       default:
         return <Dashboard challenges={challenges.filter((challenge) => challenge.status !== "pending")} summary={summary} onNavigate={navigateTo} onOpenChallenge={setSelectedChallenge} search={search} />;
     }
-  }, [activeView, challenges, navigateTo, notify, search, summary]);
+  }, [activeView, challenges, navigateTo, notify, role, search, summary]);
 
   return <div className="app-shell">
     <Sidebar
       active={activeView}
+      role={role}
       onNavigate={navigateTo}
       mobileOpen={mobileOpen}
       onClose={() => setMobileOpen(false)}
@@ -780,13 +786,6 @@ export default function KivoraApp() {
     </main>
     {selectedChallenge && <ChallengeModal challenge={selectedChallenge} onClose={() => setSelectedChallenge(null)} onJoin={async (teamName) => {
       if (!selectedChallenge.id) throw new Error("This challenge is not saved yet.");
-      let savedIds: unknown;
-      try {
-        savedIds = JSON.parse(localStorage.getItem("kivora-team-ids") ?? "[]") as unknown;
-      } catch {
-        throw new Error("Saved project references are invalid. Clear this browser’s KIVORA project data and try again.");
-      }
-      const teamIds = Array.isArray(savedIds) ? savedIds.filter((id): id is string => typeof id === "string") : [];
       const response = await fetch("/api/teams", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -794,7 +793,6 @@ export default function KivoraApp() {
       });
       const result = await response.json();
       if (!response.ok) throw new Error(result.error || "Could not join this challenge.");
-      localStorage.setItem("kivora-team-ids", JSON.stringify([...new Set([...teamIds, result.team.id])]));
       setSummary((current) => ({ ...current, teams: current.teams + 1 }));
       const name = selectedChallenge.title;
       setSelectedChallenge(null);

@@ -1,17 +1,26 @@
 import { NextResponse } from "next/server";
+import { requireUser } from "@/lib/authorization";
 import { prisma } from "@/lib/prisma";
 
-export async function GET(request: Request) {
+export async function GET() {
+  const { user, response } = await requireUser(["student"]);
+  if (response || !user) return response;
+
   try {
-    const rawIds = new URL(request.url).searchParams.get("ids") ?? "";
-    const ids = rawIds.split(",").filter((id) => /^[a-zA-Z0-9_-]{1,30}$/.test(id)).slice(0, 50);
-    if (!ids.length) return NextResponse.json({ teams: [] });
     const teams = await prisma.team.findMany({
-      where: { id: { in: ids } },
+      where: {
+        OR: [
+          { ownerId: user.id },
+          { members: { some: { userId: user.id } } },
+        ],
+      },
       include: {
-        challenge: true,
-        members: { include: { user: true } },
-        submissions: { include: { assessment: true }, orderBy: { createdAt: "desc" } },
+        challenge: { select: { id: true, title: true, category: true, description: true } },
+        members: { select: { id: true, memberRole: true } },
+        submissions: {
+          include: { assessment: { select: { score: true, feedback: true, badge: true } } },
+          orderBy: { createdAt: "desc" },
+        },
       },
       orderBy: { createdAt: "desc" },
     });
@@ -23,6 +32,9 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  const { user, response } = await requireUser(["student"]);
+  if (response || !user) return response;
+
   try {
     const body: unknown = await request.json();
     const challengeId = body && typeof body === "object" ? (body as { challengeId?: unknown }).challengeId : undefined;
@@ -36,7 +48,12 @@ export async function POST(request: Request) {
     }
     const team = await prisma.$transaction(async (transaction) => {
       const created = await transaction.team.create({
-        data: { name: teamName.trim(), challengeId },
+        data: {
+          name: teamName.trim(),
+          challengeId,
+          ownerId: user.id,
+          members: { create: { userId: user.id } },
+        },
       });
       await transaction.challenge.update({
         where: { id: challengeId },

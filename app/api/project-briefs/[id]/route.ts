@@ -1,7 +1,11 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { requireUser } from "@/lib/authorization";
 
 export async function PATCH(request: Request, context: { params: Promise<{ id: string }> }) {
+  const { user, response } = await requireUser(["teacher", "admin"]);
+  if (response || !user) return response;
+
   try {
     const body: unknown = await request.json();
     if (!body || typeof body !== "object" || (body as { approved?: unknown }).approved !== true) {

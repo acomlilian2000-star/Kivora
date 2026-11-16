@@ -18,6 +18,8 @@ export async function POST(request: Request) {
     const password = typeof input.password === "string" ? input.password : "";
     const role = input.role;
     const inviteCode = typeof input.inviteCode === "string" ? input.inviteCode : "";
+    const schoolName = typeof input.schoolName === "string" ? input.schoolName.trim() : "";
+    const district = typeof input.district === "string" ? input.district.trim() : "";
 
     if (name.length < 2 || name.length > 60 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ||
       password.length < 10 || password.length > 128) {
@@ -36,10 +38,20 @@ export async function POST(request: Request) {
     if (role === "teacher" && !process.env.TEACHER_INVITE_CODE) {
       return NextResponse.json({ error: "Teacher registration is not configured yet." }, { status: 503 });
     }
+    if (role === "teacher" && (schoolName.length < 2 || schoolName.length > 120 || district.length < 2 || district.length > 80)) {
+      return NextResponse.json({ error: "Enter the school name and district for your teacher account." }, { status: 400 });
+    }
     if (await prisma.user.findUnique({ where: { email } })) {
       return NextResponse.json({ error: "An account with that email already exists." }, { status: 409 });
     }
 
+    const school = role === "teacher"
+      ? await prisma.school.upsert({
+        where: { name_district: { name: schoolName, district } },
+        update: {},
+        create: { name: schoolName, district },
+      })
+      : null;
     const user = await prisma.user.create({
       data: {
         name,
@@ -47,7 +59,7 @@ export async function POST(request: Request) {
         passwordHash: await hash(password, 12),
         role,
         ...(role === "teacher"
-          ? { teacherProfile: { create: { verified: true } } }
+          ? { teacherProfile: { create: { verified: true, schoolId: school?.id } } }
           : { communityProfile: { create: {} } }),
       },
       select: { id: true, name: true, email: true, role: true },
