@@ -308,28 +308,124 @@ function ChallengeBrowser({ challenges, onOpen, search }: { challenges: Challeng
   </div>;
 }
 
+type StudentTeam = {
+  id: string;
+  name: string;
+  challenge: { id: string; title: string; category: string; description: string };
+  members: Array<{ user: { name: string } }>;
+  submissions: Array<{ id: string; title: string; description: string; status: string; assessment: { score: number | null; feedback: string; badge: string | null } | null }>;
+};
+
+function ProjectTeamCard({ team }: { team: StudentTeam }) {
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [evidence, setEvidence] = useState("");
+  const [error, setError] = useState("");
+  const [sending, setSending] = useState(false);
+  const [sent, setSent] = useState(false);
+  async function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setSending(true);
+    setError("");
+    setSent(false);
+    try {
+      const links = evidence.split(/\s+/).filter(Boolean);
+      const response = await fetch("/api/submissions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ teamId: team.id, title, description, evidence: links }),
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || "Could not submit the project.");
+      setTitle("");
+      setDescription("");
+      setEvidence("");
+      setSent(true);
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "Could not submit the project.");
+    } finally {
+      setSending(false);
+    }
+  }
+  return <article className="project-card"><div className="project-card-top"><div className="project-icon project-icon-green"><Sprout size={20} /></div><span className="project-status">IN PROGRESS</span></div><h3>{team.challenge.title}</h3><p>{team.challenge.description}</p><div className="project-tags"><span>{team.challenge.category}</span><span>{team.members.length} team member{team.members.length === 1 ? "" : "s"}</span></div>
+    <div className="team-submissions">{team.submissions.map((submission) => <div className="student-submission" key={submission.id}><strong>{submission.title}</strong><span>{submission.status === "reviewed" ? `Teacher score: ${submission.assessment?.score ?? "—"}/5` : "Awaiting teacher feedback"}</span>{submission.assessment && <p>{submission.assessment.feedback}{submission.assessment.badge ? ` · Badge: ${submission.assessment.badge}` : ""}</p>}</div>)}</div>
+    <form className="project-submit-form" onSubmit={(event) => void submit(event)}><strong>Share your team’s progress</strong><input required minLength={3} maxLength={100} value={title} onChange={(event) => setTitle(event.target.value)} placeholder="Give your idea a title" /><textarea required minLength={20} maxLength={1000} value={description} onChange={(event) => setDescription(event.target.value)} placeholder="Describe your proposed solution or progress" rows={3} /><input value={evidence} onChange={(event) => setEvidence(event.target.value)} placeholder="Evidence links (optional, space-separated)" aria-label="Evidence links" />{error && <span className="form-error" role="alert">{error}</span>}{sent && <span className="form-success">Your work was sent to your teacher for review.</span>}<button className="button button-dark" disabled={sending}>{sending ? "Submitting…" : "Submit project update"} <Send size={14} /></button></form></article>;
+}
+
 function ProjectsView() {
-  return <div className="inner-view"><div className="page-intro"><div><p className="section-kicker">YOUR IDEAS, IN ACTION</p><h1>My projects</h1><p>Every great solution starts somewhere. Here’s where yours are growing.</p></div><div className="intro-art"><Lightbulb size={29} /></div></div><div className="project-cards"><article className="project-card"><div className="project-card-top"><div className="project-icon project-icon-green"><Sprout size={20} /></div><span className="project-status">IN PROGRESS</span></div><h3>Plastic, reimagined</h3><p>A student-led plan to make waste sorting simple and useful at Kariakoo market.</p><div className="project-tags"><span>Environmental science</span><span>Entrepreneurship</span></div><div className="project-card-progress"><div className="progress-label"><span>Project progress</span><strong>68%</strong></div><div className="progress-track"><span style={{ width: "68%" }} /></div></div><div className="project-card-bottom"><div className="avatar-stack"><span>AM</span><span>JN</span><span>+2</span></div><span>Next: prototype feedback</span><ArrowRight size={16} /></div></article><article className="project-card project-card-muted"><div className="project-card-top"><div className="project-icon project-icon-blue"><BookOpen size={20} /></div><span className="project-status status-review">TEACHER REVIEW</span></div><h3>Water-wise classroom</h3><p>Measuring water use and finding small fixes with a big impact at school.</p><div className="project-tags"><span>Mathematics</span><span>Science</span></div><div className="project-card-progress"><div className="progress-label"><span>Project progress</span><strong>92%</strong></div><div className="progress-track blue-track"><span style={{ width: "92%" }} /></div></div><div className="project-card-bottom"><div className="avatar-stack"><span>AM</span><span>+3</span></div><span>Submitted 2 days ago</span><ArrowRight size={16} /></div></article><button className="new-project-card"><span><Plus size={20} /></span><strong>Start something new</strong><small>Choose a community challenge and bring your team together.</small><span className="new-project-link">Browse challenges <ArrowRight size={14} /></span></button></div></div>;
+  const [teams, setTeams] = useState<StudentTeam[]>([]);
+  const [error, setError] = useState("");
+  useEffect(() => {
+    fetch("/api/teams")
+      .then(async (response) => {
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || "Could not load projects.");
+        setTeams(result.teams);
+      })
+      .catch((reason: unknown) => setError(reason instanceof Error ? reason.message : "Could not load projects."));
+  }, []);
+  return <div className="inner-view"><div className="page-intro"><div><p className="section-kicker">YOUR IDEAS, IN ACTION</p><h1>My projects</h1><p>Join a challenge, bring your team together and share your solution with a teacher.</p></div><div className="intro-art"><Lightbulb size={29} /></div></div>{error && <p className="form-error" role="alert">{error}</p>}{teams.length ? <div className="project-cards">{teams.map((team) => <ProjectTeamCard key={team.id} team={team} />)}</div> : <div className="empty-projects"><span className="project-icon project-icon-green"><Sprout size={20} /></span><h2>Your next idea starts with a challenge</h2><p>Explore a published community challenge, then choose “I’m interested” to start a team project here.</p></div>}</div>;
 }
 
 function ImpactView() {
   return <div className="inner-view"><div className="page-intro"><div><p className="section-kicker">CHANGE, TOGETHER</p><h1>Impact stories</h1><p>See what happens when young people take on the challenges around them.</p></div><div className="intro-art"><Heart size={29} /></div></div><div className="impact-stats-row"><div><span>CHALLENGES SOLVED</span><strong>42</strong><small>Across 6 communities</small></div><div><span>STUDENTS CREATING</span><strong>316</strong><small>Curiosity in action</small></div><div><span>LOCAL PARTNERS</span><strong>18</strong><small>Growing together</small></div></div><div className="story-grid"><article className="story-card"><div className="story-art story-art-green"><div className="story-sun" /><div className="story-leaf"><Leaf size={60} /></div><span className="story-number">01</span></div><div className="story-body"><span className="story-category">ENVIRONMENT · DAR ES SALAAM</span><h3>From discarded plastic to market planters</h3><p>Students teamed up with market vendors to turn everyday plastic waste into a cleaner, greener space.</p><div className="story-author"><span className="author-avatar">FK</span><span><strong>Fatma’s team</strong><small>Upanga Secondary · 3 weeks ago</small></span><ArrowUpRight size={16} /></div></div></article><article className="story-card"><div className="story-art story-art-blue"><div className="story-wave wave-a" /><div className="story-wave wave-b" /><div className="story-drop">✳</div><span className="story-number">02</span></div><div className="story-body"><span className="story-category">WATER · MOSHI</span><h3>A school garden that grows with less</h3><p>A simple rainwater collection model helped one school care for its garden through the dry season.</p><div className="story-author"><span className="author-avatar author-blue">JN</span><span><strong>Juma & the Green Crew</strong><small>Moshi Secondary · 1 month ago</small></span><ArrowUpRight size={16} /></div></div></article></div></div>;
 }
 
+type TeacherSubmission = {
+  id: string;
+  title: string;
+  description: string;
+  evidence: string;
+  team: { name: string };
+  challenge: { title: string };
+};
+
+function SubmissionReviewCard({ submission, onReviewed }: { submission: TeacherSubmission; onReviewed: () => void }) {
+  const [score, setScore] = useState("4");
+  const [feedback, setFeedback] = useState("");
+  const [badge, setBadge] = useState("");
+  const [error, setError] = useState("");
+  const [saving, setSaving] = useState(false);
+  async function assess(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setSaving(true);
+    setError("");
+    try {
+      const response = await fetch(`/api/submissions/${submission.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ score: Number(score), feedback, badge }),
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || "Could not save assessment.");
+      onReviewed();
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "Could not save assessment.");
+    } finally {
+      setSaving(false);
+    }
+  }
+  const evidence = JSON.parse(submission.evidence) as string[];
+  return <article className="review-card submission-review-card"><div className="review-avatar"><FileText size={15} /></div><div className="review-card-main"><div className="review-meta"><span>STUDENT SOLUTION</span><span>·</span><span>{submission.team.name}</span></div><h3>{submission.title}</h3><p>For {submission.challenge.title}</p><div className="review-description">{submission.description}</div>{evidence.length > 0 && <div className="evidence-links">{evidence.map((url) => <a href={url} target="_blank" rel="noreferrer" key={url}>{url}</a>)}</div>}<form className="assessment-form" onSubmit={(event) => void assess(event)}><label>Score<select value={score} onChange={(event) => setScore(event.target.value)}>{[1, 2, 3, 4, 5].map((value) => <option key={value} value={value}>{value} / 5</option>)}</select></label><label>Badge (optional)<input value={badge} onChange={(event) => setBadge(event.target.value)} placeholder="e.g. Community champion" /></label><label className="assessment-feedback">Feedback<textarea required minLength={5} value={feedback} onChange={(event) => setFeedback(event.target.value)} placeholder="Share specific, encouraging feedback" rows={2} /></label>{error && <span className="form-error" role="alert">{error}</span>}<button className="button button-outline small-button" disabled={saving}>{saving ? "Saving…" : "Send feedback"} <Send size={14} /></button></form></div></article>;
+}
+
 function TeacherReview({ challenges, onApprove }: { challenges: Challenge[]; onApprove: (challenge: Challenge) => Promise<void> }) {
   const [approving, setApproving] = useState<string | null>(null);
   const [error, setError] = useState("");
-  const [tab, setTab] = useState<"challenges" | "briefs">("challenges");
+  const [tab, setTab] = useState<"challenges" | "briefs" | "submissions">("challenges");
   const [briefs, setBriefs] = useState<Array<{ id: string; projectTitle: string; subjects: string; objectives: string; activities: string; assessment: string; challenge: { title: string } }>>([]);
+  const [submissions, setSubmissions] = useState<TeacherSubmission[]>([]);
   const pending = challenges.filter((challenge) => challenge.status === "pending");
   useEffect(() => {
-    fetch("/api/project-briefs")
-      .then(async (response) => {
-        const result = await response.json();
-        if (!response.ok) throw new Error(result.error || "Could not load project briefs.");
-        setBriefs(result.briefs);
+    Promise.all([fetch("/api/project-briefs"), fetch("/api/submissions")])
+      .then(async ([briefResponse, submissionResponse]) => {
+        const [briefResult, submissionResult] = await Promise.all([briefResponse.json(), submissionResponse.json()]);
+        if (!briefResponse.ok) throw new Error(briefResult.error || "Could not load project briefs.");
+        if (!submissionResponse.ok) throw new Error(submissionResult.error || "Could not load student submissions.");
+        setBriefs(briefResult.briefs);
+        setSubmissions(submissionResult.submissions);
       })
-      .catch((reason: unknown) => setError(reason instanceof Error ? reason.message : "Could not load project briefs."));
+      .catch((reason: unknown) => setError(reason instanceof Error ? reason.message : "Could not load teacher reviews."));
   }, []);
   const handleApprove = async (challenge: Challenge) => {
     if (!challenge.id) return;
@@ -361,7 +457,24 @@ function TeacherReview({ challenges, onApprove }: { challenges: Challenge[]; onA
       setApproving(null);
     }
   };
-  return <div className="inner-view"><div className="page-intro"><div><p className="section-kicker">GUIDE THE NEXT GENERATION</p><h1>Teacher review</h1><p>Review challenges and AI-generated projects before students use them.</p></div><div className="review-count-card"><span>AWAITING YOUR REVIEW</span><strong>{pending.length + briefs.length}<small> submissions</small></strong></div></div><div className="review-tabs"><button className={`review-tab ${tab === "challenges" ? "active" : ""}`} onClick={() => setTab("challenges")}>Challenges <span>{pending.length}</span></button><button className={`review-tab ${tab === "briefs" ? "active" : ""}`} onClick={() => setTab("briefs")}>Project briefs <span>{briefs.length}</span></button></div>{error && <p className="form-error" role="alert">{error}</p>}{tab === "challenges" ? <div className="review-list">{pending.map((item) => <article className="review-card" key={item.id}><div className="review-avatar">KI</div><div className="review-card-main"><div className="review-meta"><span>{item.category.toUpperCase()}</span><span>·</span><span>Community submission</span></div><h3>{item.title}</h3><p>{item.location}</p><div className="review-description">“{item.description}”</div></div><div className="review-actions"><button className="button button-outline small-button" disabled={approving === item.id} onClick={() => void handleApprove(item)}>{approving === item.id ? "Approving…" : "Approve challenge"} <Check size={15} /></button><span className="review-text-button">Teacher approval required</span></div></article>)}{pending.length === 0 && <div className="empty-state"><Check size={23} /><strong>You’re all caught up</strong><span>New community challenges will show up here.</span></div>}</div> : <div className="review-list">{briefs.map((brief) => <article className="review-card" key={brief.id}><div className="review-avatar"><Sparkles size={15} /></div><div className="review-card-main"><div className="review-meta"><span>AI PROJECT BRIEF</span><span>·</span><span>For {brief.challenge.title}</span></div><h3>{brief.projectTitle}</h3><p>Subjects: {JSON.parse(brief.subjects).join(", ")}</p><div className="review-description">Objectives: {JSON.parse(brief.objectives).join(" · ")}</div></div><div className="review-actions"><button className="button button-outline small-button" disabled={approving === brief.id} onClick={() => void approveBrief(brief.id)}>{approving === brief.id ? "Approving…" : "Approve project"} <Check size={15} /></button><span className="review-text-button">Teacher review required</span></div></article>)}{briefs.length === 0 && <div className="empty-state"><Check size={23} /><strong>No project briefs to review</strong><span>Generate a brief from a published challenge to begin.</span></div>}</div>}<div className="ai-note"><Sparkles size={17} /><span><strong>AI-assisted, teacher-approved.</strong> Generated learning projects remain drafts until a teacher approves them.</span></div></div>;
+  const reviewContent = tab === "challenges"
+    ? <div className="review-list">{pending.map((item) => <article className="review-card" key={item.id}><div className="review-avatar">KI</div><div className="review-card-main"><div className="review-meta"><span>{item.category.toUpperCase()}</span><span>·</span><span>Community submission</span></div><h3>{item.title}</h3><p>{item.location}</p><div className="review-description">“{item.description}”</div></div><div className="review-actions"><button className="button button-outline small-button" disabled={approving === item.id} onClick={() => void handleApprove(item)}>{approving === item.id ? "Approving…" : "Approve challenge"} <Check size={15} /></button><span className="review-text-button">Teacher approval required</span></div></article>)}{pending.length === 0 && <div className="empty-state"><Check size={23} /><strong>You’re all caught up</strong><span>New community challenges will show up here.</span></div>}</div>
+    : tab === "briefs"
+      ? <div className="review-list">{briefs.map((brief) => <article className="review-card" key={brief.id}><div className="review-avatar"><Sparkles size={15} /></div><div className="review-card-main"><div className="review-meta"><span>AI PROJECT BRIEF</span><span>·</span><span>For {brief.challenge.title}</span></div><h3>{brief.projectTitle}</h3><p>Subjects: {JSON.parse(brief.subjects).join(", ")}</p><div className="review-description">Objectives: {JSON.parse(brief.objectives).join(" · ")}</div></div><div className="review-actions"><button className="button button-outline small-button" disabled={approving === brief.id} onClick={() => void approveBrief(brief.id)}>{approving === brief.id ? "Approving…" : "Approve project"} <Check size={15} /></button><span className="review-text-button">Teacher review required</span></div></article>)}{briefs.length === 0 && <div className="empty-state"><Check size={23} /><strong>No project briefs to review</strong><span>Generate a brief from a published challenge to begin.</span></div>}</div>
+      : <div className="review-list">{submissions.map((submission) => <SubmissionReviewCard key={submission.id} submission={submission} onReviewed={() => setSubmissions((current) => current.filter((item) => item.id !== submission.id))} />)}{submissions.length === 0 && <div className="empty-state"><Check size={23} /><strong>No student work to review</strong><span>Student project submissions will appear here.</span></div>}</div>;
+  return (
+    <div className="inner-view">
+      <div className="page-intro"><div><p className="section-kicker">GUIDE THE NEXT GENERATION</p><h1>Teacher review</h1><p>Review challenges, AI-generated projects and student work.</p></div><div className="review-count-card"><span>AWAITING YOUR REVIEW</span><strong>{pending.length + briefs.length + submissions.length}<small> items</small></strong></div></div>
+      <div className="review-tabs">
+        <button className={`review-tab ${tab === "challenges" ? "active" : ""}`} onClick={() => setTab("challenges")}>Challenges <span>{pending.length}</span></button>
+        <button className={`review-tab ${tab === "briefs" ? "active" : ""}`} onClick={() => setTab("briefs")}>Project briefs <span>{briefs.length}</span></button>
+        <button className={`review-tab ${tab === "submissions" ? "active" : ""}`} onClick={() => setTab("submissions")}>Student work <span>{submissions.length}</span></button>
+      </div>
+      {error && <p className="form-error" role="alert">{error}</p>}
+      {reviewContent}
+      <div className="ai-note"><Sparkles size={17} /><span><strong>AI-assisted, teacher-approved.</strong> Generated learning projects remain drafts until a teacher approves them.</span></div>
+    </div>
+  );
 }
 
 function SubmitChallenge({ onSubmit, onCancel }: { onSubmit: (challenge: Challenge) => Promise<void>; onCancel: () => void }) {
@@ -468,10 +581,12 @@ function MobileAccess() {
   </div>;
 }
 
-function ChallengeModal({ challenge, onClose, onJoin }: { challenge: Challenge; onClose: () => void; onJoin: () => void }) {
+function ChallengeModal({ challenge, onClose, onJoin }: { challenge: Challenge; onClose: () => void; onJoin: () => Promise<void> }) {
   const [brief, setBrief] = useState<Record<string, unknown> | null>(null);
   const [loadingBrief, setLoadingBrief] = useState(false);
   const [briefError, setBriefError] = useState("");
+  const [joining, setJoining] = useState(false);
+  const [joinError, setJoinError] = useState("");
 
   async function generateBrief() {
     setLoadingBrief(true);
@@ -493,7 +608,19 @@ function ChallengeModal({ challenge, onClose, onJoin }: { challenge: Challenge; 
     }
   }
 
-  return <div className="modal-backdrop" role="presentation" onClick={onClose}><section className="challenge-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title" onClick={(event) => event.stopPropagation()}><button className="modal-close icon-button" onClick={onClose} aria-label="Close challenge"><X size={19} /></button><div className={`modal-art ${challenge.color}`}><div className="modal-art-orbit" /><div className="modal-art-plant"><Sprout size={52} /></div><span className="modal-art-spark">✳</span></div><div className="modal-body"><span className="category-chip">{challenge.category}</span><h2 id="modal-title">{challenge.title}</h2><div className="modal-location"><MapPin size={14} />{challenge.location}</div><p>{challenge.description}</p><div className="modal-details"><span><Clock3 size={15} /><strong>{challenge.duration}</strong><small>project length</small></span><span><Users size={15} /><strong>{challenge.participants} students</strong><small>already curious</small></span><span><GraduationCap size={15} /><strong>{challenge.difficulty}</strong><small>difficulty</small></span></div><button className="button button-outline full-button ai-generate-button" disabled={loadingBrief} onClick={() => void generateBrief()}><Sparkles size={15} />{loadingBrief ? "Designing a learning project…" : "Generate learning project"}</button>{briefError && <p className="form-error" role="alert">{briefError}</p>}{brief && <div className="generated-brief"><div className="generated-title"><Sparkles size={15} /><strong>{String(brief.projectTitle || "Learning project")}</strong></div>{(["subjects", "objectives", "activities", "assessment"] as const).map((key) => { const items = brief[key]; return Array.isArray(items) && items.length ? <div className="brief-section" key={key}><strong>{key[0].toUpperCase() + key.slice(1)}</strong><ul>{items.map((item, index) => <li key={`${key}-${index}`}>{String(item)}</li>)}</ul></div> : null; })}{typeof brief.safetyNote === "string" && <p className="safety-note">{brief.safetyNote}</p>}</div>}<div className="modal-steps"><strong>Your first steps</strong><ol><li>Learn more about the challenge in your community.</li><li>Find a few teammates who are curious too.</li><li>Work with a teacher to shape your project plan.</li></ol></div><button className="button button-dark full-button" onClick={onJoin}>I’m interested <ArrowRight size={15} /></button></div></section></div>;
+  async function joinProject() {
+    setJoining(true);
+    setJoinError("");
+    try {
+      await onJoin();
+    } catch (reason) {
+      setJoinError(reason instanceof Error ? reason.message : "Could not join this challenge.");
+    } finally {
+      setJoining(false);
+    }
+  }
+
+  return <div className="modal-backdrop" role="presentation" onClick={onClose}><section className="challenge-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title" onClick={(event) => event.stopPropagation()}><button className="modal-close icon-button" onClick={onClose} aria-label="Close challenge"><X size={19} /></button><div className={`modal-art ${challenge.color}`}><div className="modal-art-orbit" /><div className="modal-art-plant"><Sprout size={52} /></div><span className="modal-art-spark">✳</span></div><div className="modal-body"><span className="category-chip">{challenge.category}</span><h2 id="modal-title">{challenge.title}</h2><div className="modal-location"><MapPin size={14} />{challenge.location}</div><p>{challenge.description}</p><div className="modal-details"><span><Clock3 size={15} /><strong>{challenge.duration}</strong><small>project length</small></span><span><Users size={15} /><strong>{challenge.participants} students</strong><small>already curious</small></span><span><GraduationCap size={15} /><strong>{challenge.difficulty}</strong><small>difficulty</small></span></div><button className="button button-outline full-button ai-generate-button" disabled={loadingBrief} onClick={() => void generateBrief()}><Sparkles size={15} />{loadingBrief ? "Designing a learning project…" : "Generate learning project"}</button>{briefError && <p className="form-error" role="alert">{briefError}</p>}{brief && <div className="generated-brief"><div className="generated-title"><Sparkles size={15} /><strong>{String(brief.projectTitle || "Learning project")}</strong></div>{(["subjects", "objectives", "activities", "assessment"] as const).map((key) => { const items = brief[key]; return Array.isArray(items) && items.length ? <div className="brief-section" key={key}><strong>{key[0].toUpperCase() + key.slice(1)}</strong><ul>{items.map((item, index) => <li key={`${key}-${index}`}>{String(item)}</li>)}</ul></div> : null; })}{typeof brief.safetyNote === "string" && <p className="safety-note">{brief.safetyNote}</p>}</div>}<div className="modal-steps"><strong>Your first steps</strong><ol><li>Learn more about the challenge in your community.</li><li>Find a few teammates who are curious too.</li><li>Work with a teacher to shape your project plan.</li></ol></div>{joinError && <p className="form-error" role="alert">{joinError}</p>}<button className="button button-dark full-button" disabled={joining} onClick={() => void joinProject()}>{joining ? "Creating your team…" : "I’m interested"} {!joining && <ArrowRight size={15} />}</button></div></section></div>;
 }
 
 function Toast({ message, onDismiss }: { message: string; onDismiss: () => void }) {
@@ -569,7 +696,19 @@ export default function KivoraApp() {
       <div className="page-content">{currentView}</div>
       <footer className="app-footer"><span>© 2026 KIVORA</span><span>Ideas into impact, together.</span><span><span className="footer-status" /> All systems growing</span></footer>
     </main>
-    {selectedChallenge && <ChallengeModal challenge={selectedChallenge} onClose={() => setSelectedChallenge(null)} onJoin={() => { const name = selectedChallenge.title; setSelectedChallenge(null); setActiveView("My projects"); notify(`You’re on your way to joining “${name}”`); }} />}
+    {selectedChallenge && <ChallengeModal challenge={selectedChallenge} onClose={() => setSelectedChallenge(null)} onJoin={async () => {
+      const response = await fetch("/api/teams", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ challengeId: selectedChallenge.id }),
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || "Could not join this challenge.");
+      const name = selectedChallenge.title;
+      setSelectedChallenge(null);
+      setActiveView("My projects");
+      notify(`You’ve started a project for “${name}”`);
+    }} />}
     {toast && <Toast message={toast} onDismiss={() => setToast("")} />}
   </div>;
 }
