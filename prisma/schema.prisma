@@ -13,7 +13,7 @@ model User {
   email               String?           @unique
   loginId             String?           @unique
   passwordHash        String?
-  mustChangePassword Boolean          @default(false)
+  mustChangePassword  Boolean           @default(false)
   role                String            @default("student")
   school              String?
   createdAt           DateTime          @default(now())
@@ -24,11 +24,11 @@ model User {
   supervisedStudents  StudentProfile[]  @relation("SupervisedStudents")
   createdTeams        Team[]            @relation("TeamCreator")
   submittedChallenges Challenge[]       @relation("ChallengeSubmitter")
-  reviewedChallenges Challenge[]          @relation("ChallengeReviewer")
-  supervisedProjects Project[]            @relation("ProjectSupervisor")
-  projectUpdates     ProjectUpdate[]      @relation("ProjectAuthor")
-  verifiedImpacts    ImpactRecord[]       @relation("ImpactVerifier")
-  feedbackAuthored   Feedback[]           @relation("FeedbackAuthor")
+  reviewedChallenges  Challenge[]       @relation("ChallengeReviewer")
+  supervisedProjects  Project[]         @relation("ProjectSupervisor")
+  projectUpdates      ProjectUpdate[]   @relation("ProjectAuthor")
+  verifiedImpacts     ImpactRecord[]    @relation("ImpactVerifier")
+  feedbackAuthored    Feedback[]        @relation("FeedbackAuthor")
   teamMembers         TeamMember[]
   assessments         Assessment[]
   notifications       Notification[]
@@ -102,7 +102,7 @@ model Challenge {
   whyItMatters   String?
   possibleAreas  String?
   submittedById  String?
-  reviewerId    String?
+  reviewerId     String?
   difficulty     String        @default("Beginner")
   duration       String        @default("2–3 weeks")
   participants   Int           @default(0)
@@ -113,7 +113,7 @@ model Challenge {
   createdAt      DateTime      @default(now())
   school         School?       @relation(fields: [schoolId], references: [id], onDelete: SetNull)
   submittedBy    User?         @relation("ChallengeSubmitter", fields: [submittedById], references: [id], onDelete: SetNull)
-  reviewer     User?         @relation("ChallengeReviewer", fields: [reviewerId], references: [id], onDelete: SetNull)
+  reviewer       User?         @relation("ChallengeReviewer", fields: [reviewerId], references: [id], onDelete: SetNull)
   projectBrief   ProjectBrief?
   teams          Team[]
   submissions    Submission[]
@@ -161,58 +161,58 @@ model Team {
 }
 
 model Project {
-  id                    String          @id @default(cuid())
-  teamId                String          @unique
-  title                 String
-  problemStatement      String
-  proposedSolution      String          @default("")
-  objectives            String          @default("[]")
-  availableResources    String          @default("[]")
-  materialsNeeded       String          @default("[]")
-  steps                 String          @default("[]")
-  estimatedDuration     String?
-  safetyConsiderations  String          @default("")
-  expectedOutcomes      String          @default("[]")
-  status                String          @default("idea")
-  supervisorTeacherId   String?
-  createdAt             DateTime        @default(now())
-  updatedAt             DateTime        @updatedAt
-  team                  Team            @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  supervisor            User?           @relation("ProjectSupervisor", fields: [supervisorTeacherId], references: [id], onDelete: SetNull)
-  updates               ProjectUpdate[]
-  evidence              ProjectEvidence[]
-  impactRecords         ImpactRecord[]
-  feedback              Feedback[]
+  id                   String            @id @default(cuid())
+  teamId               String            @unique
+  title                String
+  problemStatement     String
+  proposedSolution     String            @default("")
+  objectives           String            @default("[]")
+  availableResources   String            @default("[]")
+  materialsNeeded      String            @default("[]")
+  steps                String            @default("[]")
+  estimatedDuration    String?
+  safetyConsiderations String            @default("")
+  expectedOutcomes     String            @default("[]")
+  status               String            @default("idea")
+  supervisorTeacherId  String?
+  createdAt            DateTime          @default(now())
+  updatedAt            DateTime          @updatedAt
+  team                 Team              @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  supervisor           User?             @relation("ProjectSupervisor", fields: [supervisorTeacherId], references: [id], onDelete: SetNull)
+  updates              ProjectUpdate[]
+  evidence             ProjectEvidence[]
+  impactRecords        ImpactRecord[]
+  feedback             Feedback[]
 
   @@index([status])
   @@index([supervisorTeacherId])
 }
 
 model ProjectUpdate {
-  id          String   @id @default(cuid())
-  projectId   String
-  authorId    String
-  whatTried   String
+  id           String            @id @default(cuid())
+  projectId    String
+  authorId     String
+  whatTried    String
   whatHappened String
-  nextSteps   String
-  createdAt   DateTime @default(now())
-  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  author      User     @relation("ProjectAuthor", fields: [authorId], references: [id], onDelete: Cascade)
-  evidence    ProjectEvidence[]
+  nextSteps    String
+  createdAt    DateTime          @default(now())
+  project      Project           @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  author       User              @relation("ProjectAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+  evidence     ProjectEvidence[]
 
   @@index([projectId, createdAt])
   @@index([authorId])
 }
 
 model ProjectEvidence {
-  id          String        @id @default(cuid())
+  id          String         @id @default(cuid())
   projectId   String
   updateId    String?
   fileUrl     String
   fileName    String
   contentType String
-  createdAt   DateTime      @default(now())
-  project     Project       @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  createdAt   DateTime       @default(now())
+  project     Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
   update      ProjectUpdate? @relation(fields: [updateId], references: [id], onDelete: SetNull)
 
   @@index([projectId])
@@ -220,31 +220,31 @@ model ProjectEvidence {
 }
 
 model ImpactRecord {
-  id             String   @id @default(cuid())
-  projectId      String
-  metric         String
-  value          Int
-  unit           String
-  evidenceNote   String?
-  status         String   @default("reported")
-  verifiedById   String?
-  createdAt      DateTime @default(now())
-  project        Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  verifiedBy     User?    @relation("ImpactVerifier", fields: [verifiedById], references: [id], onDelete: SetNull)
+  id           String   @id @default(cuid())
+  projectId    String
+  metric       String
+  value        Int
+  unit         String
+  evidenceNote String?
+  status       String   @default("reported")
+  verifiedById String?
+  createdAt    DateTime @default(now())
+  project      Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  verifiedBy   User?    @relation("ImpactVerifier", fields: [verifiedById], references: [id], onDelete: SetNull)
 
   @@index([projectId, status])
   @@index([verifiedById])
 }
 
 model Feedback {
-  id          String   @id @default(cuid())
-  projectId   String
-  authorId    String
-  content     String
-  moderated   Boolean  @default(false)
-  createdAt   DateTime @default(now())
-  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  author      User     @relation("FeedbackAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+  id        String   @id @default(cuid())
+  projectId String
+  authorId  String
+  content   String
+  moderated Boolean  @default(false)
+  createdAt DateTime @default(now())
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  author    User     @relation("FeedbackAuthor", fields: [authorId], references: [id], onDelete: Cascade)
 
   @@index([projectId, moderated])
   @@index([authorId])
