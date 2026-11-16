@@ -36,12 +36,19 @@ import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 import { signOut } from "next-auth/react";
 import MobileAccess from "@/components/dashboard/mobile-access";
 import ProjectBriefPreview from "@/components/dashboard/project-brief-preview";
+import ImpactTracker from "@/components/student/impact-tracker";
+import InnovationMentor from "@/components/student/innovation-mentor";
+import InnovationShowcase from "@/components/student/innovation-showcase";
+import ResourceFinder from "@/components/student/resource-finder";
+import StudentHome from "@/components/student/student-home";
 import type { ProjectBrief } from "@/lib/types";
 
-type View = "Home" | "Discover challenges" | "My projects" | "Impact stories" | "Teacher review" | "Mobile access" | "Submit a challenge";
+type View = "Home" | "Problem discovery" | "AI mentor" | "Resource finder" | "Project builder" | "Innovation showcase" | "Impact tracker" | "School challenges" | "Teacher review" | "Mobile access" | "Submit a challenge" | "Discover challenges" | "My projects" | "Impact stories";
 type Challenge = {
   id?: string;
   status?: "pending" | "published";
+  kind?: "community" | "school";
+  schoolName?: string | null;
   title: string;
   category: string;
   location: string;
@@ -57,14 +64,20 @@ type Challenge = {
 type DashboardSummary = {
   publishedChallenges: number;
   pendingChallenges: number;
+  schoolChallenges: number;
   teams: number;
   submissions: number;
+  peopleHelped: number;
+  materialsReused: number;
+  problemsAddressed: number;
 };
 
 const navGroups: { title: string; items: { label: View; icon: typeof Activity }[] }[] = [
   { title: "Workspace", items: [{ label: "Home", icon: Activity }] },
-  { title: "Learn & create", items: [{ label: "Discover challenges", icon: Compass }, { label: "My projects", icon: FileText }] },
-  { title: "Community", items: [{ label: "Submit a challenge", icon: MessageSquareText }, { label: "Impact stories", icon: Globe2 }, { label: "Mobile access", icon: Smartphone }] },
+  { title: "Explore", items: [{ label: "Problem discovery", icon: Compass }, { label: "School challenges", icon: GraduationCap }] },
+  { title: "Make", items: [{ label: "AI mentor", icon: MessageSquareText }, { label: "Resource finder", icon: BookOpen }, { label: "Project builder", icon: Lightbulb }] },
+  { title: "Share", items: [{ label: "Innovation showcase", icon: Globe2 }, { label: "Impact tracker", icon: Heart }] },
+  { title: "Community", items: [{ label: "Submit a challenge", icon: MessageSquareText }, { label: "Mobile access", icon: Smartphone }] },
   { title: "For educators", items: [{ label: "Teacher review", icon: GraduationCap }] },
 ];
 
@@ -97,10 +110,10 @@ function Sidebar({
 }) {
   const [collapsedGroups, setCollapsedGroups] = useState<string[]>([]);
   const allowedViews = role === "teacher" || role === "admin"
-    ? new Set<View>(["Home", "Discover challenges", "My projects", "Impact stories", "Teacher review", "Mobile access", "Submit a challenge"])
+    ? new Set<View>(["Home", "Problem discovery", "AI mentor", "Resource finder", "Project builder", "Innovation showcase", "Impact tracker", "School challenges", "Teacher review", "Mobile access", "Submit a challenge"])
     : role === "community"
-      ? new Set<View>(["Home", "Discover challenges", "Impact stories", "Mobile access", "Submit a challenge"])
-      : new Set<View>(["Home", "Discover challenges", "My projects", "Impact stories", "Mobile access", "Submit a challenge"]);
+      ? new Set<View>(["Home", "Problem discovery", "School challenges", "Innovation showcase", "Impact tracker", "Mobile access", "Submit a challenge"])
+      : new Set<View>(["Home", "Problem discovery", "AI mentor", "Resource finder", "Project builder", "Innovation showcase", "Impact tracker", "School challenges", "Mobile access", "Submit a challenge"]);
   const toggleGroup = (title: string) => setCollapsedGroups((current) =>
     current.includes(title) ? current.filter((item) => item !== title) : [...current, title],
   );
@@ -114,7 +127,7 @@ function Sidebar({
         </div>
         <div className="workspace-switch">
           <div className="workspace-avatar"><Users size={17} /></div>
-          <span><strong>Community workspace</strong><small>Uganda · learner-led</small></span>
+          <span><strong>{role === "teacher" ? "Teacher workspace" : role === "community" ? "Community workspace" : "Student maker space"}</strong><small>Uganda · learner-led</small></span>
         </div>
         <nav className="side-nav" aria-label="Main navigation">
           {navGroups.map(({ title, items }) => {
@@ -135,7 +148,7 @@ function Sidebar({
                   >
                     <Icon size={18} strokeWidth={1.8} /><span>{label}</span>
                     {label === "Teacher review" && pendingReviewCount > 0 && <span className="nav-count">{pendingReviewCount}</span>}
-                    {label === "Discover challenges" && openChallengeCount > 0 && <span className="nav-count">{openChallengeCount}</span>}
+                    {(label === "Problem discovery" || label === "School challenges") && openChallengeCount > 0 && <span className="nav-count">{openChallengeCount}</span>}
                   </button>
                 ))}
               </section>

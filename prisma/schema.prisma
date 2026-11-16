@@ -187,6 +187,7 @@ model Assessment {
   score        Int?
   feedback     String
   badge        String?
+  publiclyApproved Boolean @default(false)
   createdAt    DateTime   @default(now())
   submission   Submission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
   teacher      User       @relation(fields: [teacherId], references: [id], onDelete: Cascade)

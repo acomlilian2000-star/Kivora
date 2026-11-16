@@ -35,6 +35,15 @@ export async function POST(request: Request) {
     if (!Array.isArray(evidence) || evidence.length > 5 || !evidence.every((item) => typeof item === "string" && /^https?:\/\//i.test(item))) {
       return NextResponse.json({ error: "Evidence must be up to five web links." }, { status: 400 });
     }
+    for (const field of ["peopleHelped", "materialsReused", "problemsAddressed"] as const) {
+      if (input[field] !== undefined &&
+        (!Number.isInteger(input[field]) || (input[field] as number) < 0 || (input[field] as number) > 10000)) {
+        return NextResponse.json({ error: "Impact counts must be whole numbers between 0 and 10,000." }, { status: 400 });
+      }
+    }
+    if (input.sharePublicly !== undefined && typeof input.sharePublicly !== "boolean") {
+      return NextResponse.json({ error: "Showcase sharing must be true or false." }, { status: 400 });
+    }
     const team = await prisma.team.findFirst({
       where: {
         id: input.teamId,
