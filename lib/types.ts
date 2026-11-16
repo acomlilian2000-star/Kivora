@@ -7,6 +7,9 @@ export type ProjectBrief = {
   competencies: string[];
   objectives: string[];
   activities: string[];
+  materials: string[];
+  timeline: string[];
+  expectedOutcomes: string[];
   assessment: string[];
   safetyNote: string;
 };
