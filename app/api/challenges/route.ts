@@ -44,9 +44,10 @@ export async function POST(request: Request) {
   }
 }
 
-function isChallengeInput(value: unknown): value is Record<"title" | "category" | "location" | "description", string> {
+function isChallengeInput(value: unknown): value is Record<string, string> {
   if (!value || typeof value !== "object") return false;
   const input = value as Record<string, unknown>;
   return ["title", "category", "location", "description"].every((key) => typeof input[key] === "string" && input[key].trim().length > 0) &&
-    (input.description as string).trim().length >= 15;
+    (input.description as string).trim().length >= 15 &&
+    (input.contactPhone === undefined || (typeof input.contactPhone === "string" && /^\+?[0-9\s()-]{7,20}$/.test(input.contactPhone)));
 }
