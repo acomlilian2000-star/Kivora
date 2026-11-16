@@ -4,7 +4,7 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "KIVORA — Ideas into Impact",
   description:
-    "A learning and innovation ecosystem connecting real community challenges with student ideas.",
+    "A mobile-first learning and innovation ecosystem connecting rural communities, schools, and student ideas.",
 };
 
 export default function RootLayout({

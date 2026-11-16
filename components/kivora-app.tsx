@@ -34,6 +34,7 @@ import {
   X,
 } from "lucide-react";
 import { FormEvent, useEffect, useMemo, useState } from "react";
+import MobileAccess from "@/components/dashboard/mobile-access";
 
 type View = "Home" | "Discover challenges" | "My projects" | "Impact stories" | "Teacher review" | "Mobile access" | "Submit a challenge";
 type Challenge = {
@@ -55,8 +56,8 @@ const initialChallenges: Challenge[] = [
   {
     title: "Give plastic a second life",
     category: "Environment",
-    location: "Kariakoo Market, Dar es Salaam",
-    description: "Plastic waste is blocking drainage and affecting the cleanliness of our local market.",
+    location: "Mlimani Village, Morogoro Region",
+    description: "Plastic waste is blocking water channels and making the village market difficult to keep clean.",
     difficulty: "Intermediate",
     duration: "3 weeks",
     participants: 24,
@@ -66,7 +67,7 @@ const initialChallenges: Challenge[] = [
   {
     title: "Every drop counts",
     category: "Water & sanitation",
-    location: "Moshi, Kilimanjaro",
+    location: "Rural school near Same, Kilimanjaro",
     description: "Our school loses water through small leaks. How might we make every drop count?",
     difficulty: "Beginner",
     duration: "2 weeks",
@@ -77,8 +78,8 @@ const initialChallenges: Challenge[] = [
   {
     title: "Light up the learning corner",
     category: "Energy",
-    location: "Mwanza, Lake Zone",
-    description: "Students need a safe, low-cost way to keep reading when the sun goes down.",
+    location: "Busega District, Simiyu Region",
+    description: "Students need a safe, low-cost way to keep reading after sunset when the grid is unavailable.",
     difficulty: "Intermediate",
     duration: "4 weeks",
     participants: 12,
@@ -127,7 +128,7 @@ function Sidebar({
         </div>
         <button className="workspace-switch">
           <div className="workspace-avatar"><Leaf size={17} /></div>
-          <span><strong>Learning space</strong><small>Upanga Secondary</small></span>
+          <span><strong>Learning space</strong><small>Mlimani Community School</small></span>
           <ChevronDown size={15} />
         </button>
         <nav className="side-nav" aria-label="Main navigation">
@@ -193,7 +194,7 @@ function Topbar({
           {notificationsOpen && <div className="notification-popover">
             <div className="popover-heading"><strong>Notifications</strong><span>2 new</span></div>
             <div className="notification-item"><span className="notification-icon green"><Check size={15} /></span><div><strong>Your idea got noticed!</strong><p>Ms. Neema left feedback on your project.</p><small>12 min ago</small></div></div>
-            <div className="notification-item"><span className="notification-icon orange"><Sparkles size={15} /></span><div><strong>New challenge near you</strong><p>A water conservation challenge in Upanga.</p><small>1 hour ago</small></div></div>
+            <div className="notification-item"><span className="notification-icon orange"><Sparkles size={15} /></span><div><strong>New challenge near you</strong><p>A water conservation challenge in a nearby village.</p><small>1 hour ago</small></div></div>
             <button className="popover-link" onClick={() => setNotificationsOpen(false)}>View all notifications <ArrowRight size={14} /></button>
           </div>}
         </div>
@@ -219,14 +220,14 @@ function Dashboard({
   return (
     <>
       <section className="welcome-row">
-        <div><p className="eyebrow"><span className="eyebrow-dot" /> MONDAY, 16 NOVEMBER 2026</p><h1>Good morning, Amina <span>✦</span></h1><p className="welcome-subtitle">A little curiosity can change a whole community. What will you make happen?</p></div>
+        <div><p className="eyebrow"><span className="eyebrow-dot" /> YOUR COMMUNITY LEARNING SPACE</p><h1>Good morning, Amina <span>✦</span></h1><p className="welcome-subtitle">Start with what your village knows. See what your school can make possible.</p></div>
         <button className="button button-outline" onClick={() => onNavigate("Submit a challenge")}><Plus size={17} /> Share a challenge</button>
       </section>
       <section className="hero-card">
         <div className="hero-content">
           <div className="hero-pill"><Sparkles size={13} /> YOUR IDEAS HAVE POWER</div>
           <h2>Big change starts<br />with <em>one good question.</em></h2>
-          <p>Explore real challenges from your community and turn what you learn into something that matters.</p>
+          <p>Explore challenges from nearby schools and villages. Turn local knowledge into something that matters.</p>
           <button className="button button-light" onClick={() => onNavigate("Discover challenges")}>Explore challenges <ArrowRight size={16} /></button>
         </div>
         <div className="hero-art" aria-hidden="true">
@@ -271,7 +272,7 @@ function Dashboard({
       </div>
       <section className="impact-banner">
         <div className="impact-banner-icon"><Heart size={19} /></div>
-        <div><strong>Small steps, real-world impact.</strong><span>Your community has shared 18 challenges this month. Every one is a chance to learn by doing.</span></div>
+        <div><strong>Small steps, real-world impact.</strong><span>Every local challenge is a chance for students, teachers and community members to learn by doing.</span></div>
         <button className="text-button" onClick={() => onNavigate("Impact stories")}>See the impact <ArrowRight size={15} /></button>
       </section>
     </>
@@ -368,7 +369,29 @@ function ProjectsView() {
 }
 
 function ImpactView() {
-  return <div className="inner-view"><div className="page-intro"><div><p className="section-kicker">CHANGE, TOGETHER</p><h1>Impact stories</h1><p>See what happens when young people take on the challenges around them.</p></div><div className="intro-art"><Heart size={29} /></div></div><div className="impact-stats-row"><div><span>CHALLENGES SOLVED</span><strong>42</strong><small>Across 6 communities</small></div><div><span>STUDENTS CREATING</span><strong>316</strong><small>Curiosity in action</small></div><div><span>LOCAL PARTNERS</span><strong>18</strong><small>Growing together</small></div></div><div className="story-grid"><article className="story-card"><div className="story-art story-art-green"><div className="story-sun" /><div className="story-leaf"><Leaf size={60} /></div><span className="story-number">01</span></div><div className="story-body"><span className="story-category">ENVIRONMENT · DAR ES SALAAM</span><h3>From discarded plastic to market planters</h3><p>Students teamed up with market vendors to turn everyday plastic waste into a cleaner, greener space.</p><div className="story-author"><span className="author-avatar">FK</span><span><strong>Fatma’s team</strong><small>Upanga Secondary · 3 weeks ago</small></span><ArrowUpRight size={16} /></div></div></article><article className="story-card"><div className="story-art story-art-blue"><div className="story-wave wave-a" /><div className="story-wave wave-b" /><div className="story-drop">✳</div><span className="story-number">02</span></div><div className="story-body"><span className="story-category">WATER · MOSHI</span><h3>A school garden that grows with less</h3><p>A simple rainwater collection model helped one school care for its garden through the dry season.</p><div className="story-author"><span className="author-avatar author-blue">JN</span><span><strong>Juma & the Green Crew</strong><small>Moshi Secondary · 1 month ago</small></span><ArrowUpRight size={16} /></div></div></article></div></div>;
+  return (
+    <div className="inner-view">
+      <div className="page-intro">
+        <div><p className="section-kicker">LOCAL IDEAS, SHARED PROGRESS</p><h1>Impact stories</h1><p>Examples of how rural schools can learn from the challenges around them.</p></div>
+        <div className="intro-art"><Heart size={29} /></div>
+      </div>
+      <div className="impact-stats-row">
+        <div><span>CHALLENGES SOLVED</span><strong>42</strong><small>Across 6 communities</small></div>
+        <div><span>STUDENTS CREATING</span><strong>316</strong><small>Curiosity in action</small></div>
+        <div><span>LOCAL PARTNERS</span><strong>18</strong><small>Growing together</small></div>
+      </div>
+      <div className="story-grid">
+        <article className="story-card">
+          <div className="story-art story-art-green"><div className="story-sun" /><div className="story-leaf"><Leaf size={60} /></div><span className="story-number">01</span></div>
+          <div className="story-body"><span className="story-category">WATER · KILIMANJARO</span><h3>A school garden that grows with less</h3><p>Students map how water is used at school and explore a safe rainwater collection idea for the dry season.</p><div className="story-author"><span className="author-avatar">JN</span><span><strong>Juma & the Green Crew</strong><small>Rural school near Same · Example project</small></span><ArrowUpRight size={16} /></div></div>
+        </article>
+        <article className="story-card">
+          <div className="story-art story-art-blue"><div className="story-wave wave-a" /><div className="story-wave wave-b" /><div className="story-drop">✳</div><span className="story-number">02</span></div>
+          <div className="story-body"><span className="story-category">ENERGY · SIMIYU</span><h3>More light for an after-school study group</h3><p>A student team compares safe, low-cost lighting options and shares a plan with families and teachers.</p><div className="story-author"><span className="author-avatar author-blue">AM</span><span><strong>Amina’s team</strong><small>Busega District · Example project</small></span><ArrowUpRight size={16} /></div></div>
+        </article>
+      </div>
+    </div>
+  );
 }
 
 type TeacherSubmission = {
@@ -518,67 +541,6 @@ function SubmitChallenge({ onSubmit, onCancel }: { onSubmit: (challenge: Challen
       </div>
     </div>
   );
-}
-
-function MobileAccess() {
-  const [phone, setPhone] = useState("+255700000000");
-  const [sessionId, setSessionId] = useState("");
-  const [enteredText, setEnteredText] = useState("");
-  const [input, setInput] = useState("");
-  const [response, setResponse] = useState("");
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState("");
-
-  async function send(inputText?: string) {
-    setBusy(true);
-    setError("");
-    const activeSessionId = sessionId || crypto.randomUUID();
-    const nextText = inputText === undefined
-      ? enteredText
-      : enteredText ? `${enteredText}*${inputText}` : inputText;
-    try {
-      const body = new URLSearchParams({ sessionId: activeSessionId, phoneNumber: phone, serviceCode: "*384*123#", text: nextText });
-      const result = await fetch("/api/ussd", { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body });
-      const message = await result.text();
-      if (!result.ok) throw new Error(message || "The USSD simulator could not connect.");
-      setSessionId(activeSessionId);
-      setEnteredText(nextText);
-      setResponse(message);
-      setInput("");
-    } catch (reason) {
-      setError(reason instanceof Error ? reason.message : "The USSD simulator could not connect.");
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  const isConnected = response.startsWith("CON");
-  const menuIsVisible = response.includes("1. Submit a community problem");
-  return <div className="inner-view">
-    <div className="page-intro"><div><p className="section-kicker">KIVORA GOES WHERE YOU ARE</p><h1>Mobile access</h1><p>Try the USSD journey for a basic phone, or connect a sandbox number for real SMS updates.</p></div><div className="intro-art"><Smartphone size={28} /></div></div>
-    <div className="mobile-access-grid">
-      <section className="ussd-simulator panel">
-        <div className="simulator-heading"><span className="simulator-icon"><Smartphone size={18} /></span><div><h2>USSD simulator</h2><p>Try the same flow that runs through the Africa’s Talking callback.</p></div><span className="sandbox-pill">SANDBOX</span></div>
-        <label className="form-label simulator-phone">Phone number<input value={phone} onChange={(event) => setPhone(event.target.value)} aria-label="Simulator phone number" /></label>
-        <div className="phone-frame"><div className="phone-screen">
-          <div className="phone-status"><span>12:06</span><span>● ● ● ▰</span></div>
-          <div className="phone-carrier">KIVORA · USSD</div>
-          {response ? <p className="ussd-response">{response.replace(/^(CON|END)\s?/, "")}</p> : <div className="phone-placeholder"><span>*384*123#</span><small>Dial to begin</small></div>}
-          {menuIsVisible && <div className="ussd-quick-options">{["1", "2", "3", "4"].map((choice) => <button key={choice} disabled={busy} onClick={() => void send(choice)}>{choice}</button>)}</div>}
-          {isConnected && !menuIsVisible && <form className="ussd-input" onSubmit={(event) => { event.preventDefault(); if (input.trim()) void send(input.trim()); }}><input value={input} onChange={(event) => setInput(event.target.value)} placeholder="Type your response" autoComplete="off" /><button disabled={busy || !input.trim()}>{busy ? "…" : "Send"}</button></form>}
-          {!response && <button className="dial-button" disabled={busy} onClick={() => void send()}>{busy ? "Connecting…" : "Dial KIVORA"}</button>}
-          {response.startsWith("END") && <button className="dial-button" onClick={() => { setSessionId(""); setEnteredText(""); setResponse(""); setInput(""); }}>Start a new session</button>}
-        </div></div>
-        {error && <p className="form-error" role="alert">{error}</p>}
-        <p className="simulator-caption">Demo shortcode: <strong>*384*123#</strong> · API endpoint: <code>/api/ussd</code></p>
-      </section>
-      <aside className="mobile-info">
-        <div className="mobile-info-card"><span className="mobile-info-icon"><MessageSquareText size={18} /></span><h3>For every kind of phone</h3><p>People can share local challenges without installing an app or needing mobile data.</p></div>
-        <div className="mobile-info-card sms-info"><span className="mobile-info-icon"><Send size={17} /></span><h3>SMS keeps people in the loop</h3><p>Set Africa’s Talking sandbox credentials to send submission confirmations and teacher alerts.</p><span className="env-hint">AT_USERNAME · AT_API_KEY</span></div>
-        <div className="ussd-flow"><span>PHONE</span><ArrowRight size={14} /><span>KIVORA WEBHOOK</span><ArrowRight size={14} /><span>CHALLENGE REVIEW</span></div>
-      </aside>
-    </div>
-  </div>;
 }
 
 function ChallengeModal({ challenge, onClose, onJoin }: { challenge: Challenge; onClose: () => void; onJoin: () => Promise<void> }) {

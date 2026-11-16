@@ -1,9 +1,0 @@
-{
-  "version": 1,
-  "functions": {
-    "/api/challenges/[id]": {},
-    "/api/challenges": {},
-    "/api/impact-engine": {},
-    "/api/ussd": {}
-  }
-}
