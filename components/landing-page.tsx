@@ -30,14 +30,14 @@ export default function LandingPage() {
 
       <section className="landing-hero">
         <div className="landing-hero-copy">
-          <div className="landing-overline"><span /> BUILT WITH RURAL SCHOOLS AND COMMUNITIES</div>
+          <div className="landing-overline"><span /> UGANDA-FIRST. COMMUNITY-LED. OPEN TO ALL.</div>
           <h1>Ideas into<br /><em>impact.</em></h1>
-          <p className="landing-lede">Great ideas grow everywhere. KIVORA connects rural communities’ real challenges with students, teachers and practical, hands-on learning.</p>
+          <p className="landing-lede">Great ideas grow everywhere. KIVORA helps Ugandan learners and teachers work with their communities to turn local challenges into practical, hands-on learning.</p>
           <div className="landing-hero-actions">
             <Link className="landing-cta" href="/dashboard">Explore the platform <ArrowRight size={16} /></Link>
             <a className="landing-watch" href="#how-it-works"><span><ArrowDown size={14} /></span> See how it works</a>
           </div>
-          <div className="landing-proof"><div className="landing-avatars"><span>AM</span><span>JN</span><span>FK</span><span>+</span></div><span><strong>Rooted in local knowledge.</strong><br />Made for every learner.</span></div>
+          <div className="landing-proof"><div className="landing-avatars"><span>AM</span><span>JN</span><span>FK</span><span>+</span></div><span><strong>Rooted in local knowledge.</strong><br />Designed in Uganda. Adaptable elsewhere.</span></div>
         </div>
         <div className="landing-hero-art" aria-label="Illustration of ideas growing into impact">
           <div className="landing-art-grid" />
@@ -74,9 +74,9 @@ export default function LandingPage() {
       <section className="landing-how" id="how-it-works">
         <div className="landing-section-title"><div><span className="landing-overline">FROM LOCAL CHALLENGE TO SHARED PROGRESS</span><h2>Learning rooted in your community.</h2></div><p>Turn nearby challenges—water access, farming, energy or safe routes—into meaningful classroom projects.</p></div>
         <div className="landing-steps">
-          <article><span className="step-number">01</span><span className="step-icon"><MessageSquareText size={19} /></span><h3>Start with a challenge</h3><p>A family, farmer or community member shares a local need online or by basic phone.</p><span className="step-link">LISTEN LOCALLY</span></article>
-          <article><span className="step-number">02</span><span className="step-icon"><Lightbulb size={19} /></span><h3>Turn it into learning</h3><p>KIVORA’s Impact Engine helps shape a challenge into a practical project brief.</p><span className="step-link">LEARN BY DOING</span></article>
-          <article><span className="step-number">03</span><span className="step-icon"><Users size={19} /></span><h3>Build the answer together</h3><p>Students, teachers and local knowledge come together to make change.</p><span className="step-link">MAKE IT MATTER</span></article>
+          <article><span className="step-number">01</span><span className="step-icon"><MessageSquareText size={19} /></span><h3>Listen and investigate</h3><p>Learners speak with people affected, observe the issue and connect it to class learning.</p><span className="step-link">START WITH COMMUNITY</span></article>
+          <article><span className="step-number">02</span><span className="step-icon"><Lightbulb size={19} /></span><h3>Design a practical response</h3><p>With a teacher, learners make a low-cost plan, try a safe prototype and improve it using feedback.</p><span className="step-link">LEARN BY DOING</span></article>
+          <article><span className="step-number">03</span><span className="step-icon"><Users size={19} /></span><h3>Share back and reflect</h3><p>Teams present what worked to their community and reflect on knowledge, skills and next steps.</p><span className="step-link">MAKE IT MATTER</span></article>
         </div>
       </section>
 

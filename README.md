@@ -1,6 +1,6 @@
 # KIVORA — Ideas into Impact
 
-KIVORA is a mobile-first learning and innovation MVP for rural schools and communities. Community challenges move through review, teacher-approved challenges can be explored by students, and the Impact Engine can turn an approved challenge into a structured learning-project draft.
+KIVORA is an Uganda-first, mobile-first learning and innovation MVP for rural schools and communities, designed to be adaptable to other countries. Community challenges move through review, teacher-approved challenges can be explored by learners, and the Impact Engine can turn an approved challenge into a structured learning-project draft.
 
 ## Run locally
 
@@ -66,7 +66,9 @@ Restart `npm.cmd run dev` after changing environment variables. AI generation re
 
 ## Scope and deployment notes
 
-The interface is designed mobile-first for rural connectivity constraints: low-weight screens, text-first journeys, and a USSD path for basic phones. The current website UI is English; Swahili localization should be added before rollout in local schools. USSD callback and SMS provider wiring require Africa's Talking sandbox credentials and a publicly reachable callback URL.
+Uganda alignment is informed by the [NCDC Lower Secondary Curriculum](https://ncdc.go.ug/lower-secondary-curriculum-embraced/), which describes a competency-based framework including key learning outcomes, values, generic skills, cross-cutting issues and a curriculum menu. NCDC also describes a revised lower-primary curriculum with foundational literacy in local languages, English and Kiswahili. KIVORA project briefs are learning supports, not substitutes for the current school syllabus or teacher judgement. Teachers should select the learner's level and check alignment to the current subject syllabus.
+
+The interface is designed mobile-first for rural connectivity constraints: low-weight screens, text-first journeys, and a USSD path for basic phones. The current website UI is English; local-language versions and SMS/USSD prompts should be reviewed with Ugandan communities before rollout. USSD callback and SMS provider wiring require Africa's Talking sandbox credentials and a publicly reachable callback URL.
 
 This repository is a locally runnable hackathon MVP, not a production-ready deployment. SQLite keeps setup self-contained; before a shared deployment, switch Prisma to PostgreSQL and migrate the schema. Authentication/authorization, student accounts, teams and submissions, evidence uploads, assessment/badges, inbound SMS, delivery retries, production-grade RAG/vector search, and deployment secrets still need implementation/configuration. Current teacher/student screens are demo workspaces, not security boundaries. Do not expose the demo endpoints to the public internet as-is.
 

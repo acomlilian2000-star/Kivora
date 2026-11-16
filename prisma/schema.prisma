@@ -42,7 +42,9 @@ model ProjectBrief {
   id          String    @id @default(cuid())
   challengeId String    @unique
   projectTitle String
+  learnerLevel String   @default("Lower secondary · Senior 1–4")
   subjects    String
+  competencies String   @default("[]")
   objectives  String
   activities  String
   assessment String

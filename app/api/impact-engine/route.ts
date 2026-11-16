@@ -10,19 +10,32 @@ export async function POST(request: Request) {
     if (!body || typeof body !== "object" || typeof (body as { title?: unknown }).title !== "string" || typeof (body as { description?: unknown }).description !== "string") {
       return NextResponse.json({ error: "A challenge title and description are required." }, { status: 400 });
     }
-    const { id, title, description, category, location } = body as { id?: string; title: string; description: string; category?: string; location?: string };
+    const { id, title, description, category, location, learnerLevel } = body as {
+      id?: string;
+      title: string;
+      description: string;
+      category?: string;
+      location?: string;
+      learnerLevel?: string;
+    };
     if (!id) return NextResponse.json({ error: "Save and approve this challenge before generating its project brief." }, { status: 400 });
+    const allowedLevels = ["Primary P1–P7", "Lower secondary S1–S4", "Advanced secondary S5–S6"];
+    if (!learnerLevel || !allowedLevels.includes(learnerLevel)) {
+      return NextResponse.json({ error: "Choose a Ugandan learner level before generating the project brief." }, { status: 400 });
+    }
     const challenge = await prisma.challenge.findUnique({ where: { id } });
     if (!challenge || challenge.status !== "published") {
       return NextResponse.json({ error: "A teacher must approve this challenge before AI project generation." }, { status: 409 });
     }
-    const brief = await generateProjectBrief({ title, description, category, location });
+    const brief = await generateProjectBrief({ title, description, category, location, learnerLevel });
     const savedBrief = await prisma.projectBrief.upsert({
       where: { challengeId: id },
       create: {
         challengeId: id,
         projectTitle: brief.projectTitle,
+        learnerLevel,
         subjects: JSON.stringify(brief.subjects),
+        competencies: JSON.stringify(brief.competencies),
         objectives: JSON.stringify(brief.objectives),
         activities: JSON.stringify(brief.activities),
         assessment: JSON.stringify(brief.assessment),
@@ -31,7 +44,9 @@ export async function POST(request: Request) {
       },
       update: {
         projectTitle: brief.projectTitle,
+        learnerLevel,
         subjects: JSON.stringify(brief.subjects),
+        competencies: JSON.stringify(brief.competencies),
         objectives: JSON.stringify(brief.objectives),
         activities: JSON.stringify(brief.activities),
         assessment: JSON.stringify(brief.assessment),

@@ -8,7 +8,7 @@ export async function getDemoUser(role: "student" | "teacher") {
       email: isStudent ? "amina@kivora.demo" : "neema@kivora.demo",
       name: isStudent ? "Amina M." : "Neema T.",
       role,
-      school: "Upanga Secondary",
+      school: "Nakasongola Community School",
     },
     update: {},
   });

@@ -35,6 +35,8 @@ import {
 } from "lucide-react";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import MobileAccess from "@/components/dashboard/mobile-access";
+import ProjectBriefPreview from "@/components/dashboard/project-brief-preview";
+import type { ProjectBrief } from "@/lib/types";
 
 type View = "Home" | "Discover challenges" | "My projects" | "Impact stories" | "Teacher review" | "Mobile access" | "Submit a challenge";
 type Challenge = {
@@ -56,8 +58,8 @@ const initialChallenges: Challenge[] = [
   {
     title: "Give plastic a second life",
     category: "Environment",
-    location: "Mlimani Village, Morogoro Region",
-    description: "Plastic waste is blocking water channels and making the village market difficult to keep clean.",
+    location: "Nakasongola District, Central Uganda",
+    description: "Plastic waste is blocking drainage around our trading centre and making it difficult to keep the shared space clean.",
     difficulty: "Intermediate",
     duration: "3 weeks",
     participants: 24,
@@ -67,7 +69,7 @@ const initialChallenges: Challenge[] = [
   {
     title: "Every drop counts",
     category: "Water & sanitation",
-    location: "Rural school near Same, Kilimanjaro",
+    location: "Kumi District, Eastern Uganda",
     description: "Our school loses water through small leaks. How might we make every drop count?",
     difficulty: "Beginner",
     duration: "2 weeks",
@@ -78,8 +80,8 @@ const initialChallenges: Challenge[] = [
   {
     title: "Light up the learning corner",
     category: "Energy",
-    location: "Busega District, Simiyu Region",
-    description: "Students need a safe, low-cost way to keep reading after sunset when the grid is unavailable.",
+    location: "Lamwo District, Northern Uganda",
+    description: "Learners need a safe, affordable way to study after sunset when reliable electricity is not available.",
     difficulty: "Intermediate",
     duration: "4 weeks",
     participants: 12,
@@ -128,7 +130,7 @@ function Sidebar({
         </div>
         <button className="workspace-switch">
           <div className="workspace-avatar"><Leaf size={17} /></div>
-          <span><strong>Learning space</strong><small>Mlimani Community School</small></span>
+          <span><strong>Learning space</strong><small>Nakasongola Community School</small></span>
           <ChevronDown size={15} />
         </button>
         <nav className="side-nav" aria-label="Main navigation">
@@ -154,7 +156,7 @@ function Sidebar({
           <button className="nav-link help-link"><CircleHelp size={18} /><span>Help & support</span></button>
           <div className="profile">
             <div className="profile-photo">AM</div>
-            <div className="profile-info"><strong>Amina M.</strong><span>Student · Form 3</span></div>
+            <div className="profile-info"><strong>Amina M.</strong><span>Learner · Senior 2</span></div>
             <button className="icon-button profile-menu" aria-label="Profile menu"><ChevronDown size={16} /></button>
           </div>
         </div>
@@ -220,14 +222,14 @@ function Dashboard({
   return (
     <>
       <section className="welcome-row">
-        <div><p className="eyebrow"><span className="eyebrow-dot" /> YOUR COMMUNITY LEARNING SPACE</p><h1>Good morning, Amina <span>✦</span></h1><p className="welcome-subtitle">Start with what your village knows. See what your school can make possible.</p></div>
+        <div><p className="eyebrow"><span className="eyebrow-dot" /> YOUR COMMUNITY LEARNING SPACE</p><h1>Good morning, Amina <span>✦</span></h1><p className="welcome-subtitle">Start with what your community knows. See what your school can make possible.</p></div>
         <button className="button button-outline" onClick={() => onNavigate("Submit a challenge")}><Plus size={17} /> Share a challenge</button>
       </section>
       <section className="hero-card">
         <div className="hero-content">
           <div className="hero-pill"><Sparkles size={13} /> YOUR IDEAS HAVE POWER</div>
           <h2>Big change starts<br />with <em>one good question.</em></h2>
-          <p>Explore challenges from nearby schools and villages. Turn local knowledge into something that matters.</p>
+          <p>Explore challenges from nearby schools and communities. Turn local knowledge into something that matters.</p>
           <button className="button button-light" onClick={() => onNavigate("Discover challenges")}>Explore challenges <ArrowRight size={16} /></button>
         </div>
         <div className="hero-art" aria-hidden="true">
@@ -383,16 +385,28 @@ function ImpactView() {
       <div className="story-grid">
         <article className="story-card">
           <div className="story-art story-art-green"><div className="story-sun" /><div className="story-leaf"><Leaf size={60} /></div><span className="story-number">01</span></div>
-          <div className="story-body"><span className="story-category">WATER · KILIMANJARO</span><h3>A school garden that grows with less</h3><p>Students map how water is used at school and explore a safe rainwater collection idea for the dry season.</p><div className="story-author"><span className="author-avatar">JN</span><span><strong>Juma & the Green Crew</strong><small>Rural school near Same · Example project</small></span><ArrowUpRight size={16} /></div></div>
+          <div className="story-body"><span className="story-category">WATER · KUMI</span><h3>A school garden that grows with less</h3><p>Learners map how water is used at school and explore safe ways to conserve water during dry periods.</p><div className="story-author"><span className="author-avatar">JN</span><span><strong>Juma & the Green Crew</strong><small>Kumi District · Example project</small></span><ArrowUpRight size={16} /></div></div>
         </article>
         <article className="story-card">
           <div className="story-art story-art-blue"><div className="story-wave wave-a" /><div className="story-wave wave-b" /><div className="story-drop">✳</div><span className="story-number">02</span></div>
-          <div className="story-body"><span className="story-category">ENERGY · SIMIYU</span><h3>More light for an after-school study group</h3><p>A student team compares safe, low-cost lighting options and shares a plan with families and teachers.</p><div className="story-author"><span className="author-avatar author-blue">AM</span><span><strong>Amina’s team</strong><small>Busega District · Example project</small></span><ArrowUpRight size={16} /></div></div>
+          <div className="story-body"><span className="story-category">ENERGY · LAMWO</span><h3>More light for an after-school study group</h3><p>A learner team compares safe, low-cost lighting options and shares a plan with families and teachers.</p><div className="story-author"><span className="author-avatar author-blue">AM</span><span><strong>Amina’s team</strong><small>Lamwo District · Example project</small></span><ArrowUpRight size={16} /></div></div>
         </article>
       </div>
     </div>
   );
 }
+
+type TeacherProjectBrief = {
+  id: string;
+  projectTitle: string;
+  learnerLevel: string;
+  subjects: string;
+  competencies: string;
+  objectives: string;
+  activities: string;
+  assessment: string;
+  challenge: { title: string };
+};
 
 type TeacherSubmission = {
   id: string;
@@ -436,7 +450,7 @@ function TeacherReview({ challenges, onApprove }: { challenges: Challenge[]; onA
   const [approving, setApproving] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [tab, setTab] = useState<"challenges" | "briefs" | "submissions">("challenges");
-  const [briefs, setBriefs] = useState<Array<{ id: string; projectTitle: string; subjects: string; objectives: string; activities: string; assessment: string; challenge: { title: string } }>>([]);
+  const [briefs, setBriefs] = useState<TeacherProjectBrief[]>([]);
   const [submissions, setSubmissions] = useState<TeacherSubmission[]>([]);
   const pending = challenges.filter((challenge) => challenge.status === "pending");
   useEffect(() => {
@@ -544,7 +558,8 @@ function SubmitChallenge({ onSubmit, onCancel }: { onSubmit: (challenge: Challen
 }
 
 function ChallengeModal({ challenge, onClose, onJoin }: { challenge: Challenge; onClose: () => void; onJoin: () => Promise<void> }) {
-  const [brief, setBrief] = useState<Record<string, unknown> | null>(null);
+  const [brief, setBrief] = useState<ProjectBrief | null>(null);
+  const [learnerLevel, setLearnerLevel] = useState("Lower secondary S1–S4");
   const [loadingBrief, setLoadingBrief] = useState(false);
   const [briefError, setBriefError] = useState("");
   const [joining, setJoining] = useState(false);
@@ -558,10 +573,11 @@ function ChallengeModal({ challenge, onClose, onJoin }: { challenge: Challenge; 
       const response = await fetch("/api/impact-engine", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(challenge),
+        body: JSON.stringify({ ...challenge, learnerLevel }),
       });
       const result = await response.json();
       if (!response.ok) throw new Error(result.error || "Could not generate the project brief.");
+      if (!isProjectBrief(result.brief)) throw new Error("The generated project brief is incomplete.");
       setBrief(result.brief);
     } catch (error) {
       setBriefError(error instanceof Error ? error.message : "Could not generate the project brief.");
@@ -582,7 +598,57 @@ function ChallengeModal({ challenge, onClose, onJoin }: { challenge: Challenge; 
     }
   }
 
-  return <div className="modal-backdrop" role="presentation" onClick={onClose}><section className="challenge-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title" onClick={(event) => event.stopPropagation()}><button className="modal-close icon-button" onClick={onClose} aria-label="Close challenge"><X size={19} /></button><div className={`modal-art ${challenge.color}`}><div className="modal-art-orbit" /><div className="modal-art-plant"><Sprout size={52} /></div><span className="modal-art-spark">✳</span></div><div className="modal-body"><span className="category-chip">{challenge.category}</span><h2 id="modal-title">{challenge.title}</h2><div className="modal-location"><MapPin size={14} />{challenge.location}</div><p>{challenge.description}</p><div className="modal-details"><span><Clock3 size={15} /><strong>{challenge.duration}</strong><small>project length</small></span><span><Users size={15} /><strong>{challenge.participants} students</strong><small>already curious</small></span><span><GraduationCap size={15} /><strong>{challenge.difficulty}</strong><small>difficulty</small></span></div><button className="button button-outline full-button ai-generate-button" disabled={loadingBrief} onClick={() => void generateBrief()}><Sparkles size={15} />{loadingBrief ? "Designing a learning project…" : "Generate learning project"}</button>{briefError && <p className="form-error" role="alert">{briefError}</p>}{brief && <div className="generated-brief"><div className="generated-title"><Sparkles size={15} /><strong>{String(brief.projectTitle || "Learning project")}</strong></div>{(["subjects", "objectives", "activities", "assessment"] as const).map((key) => { const items = brief[key]; return Array.isArray(items) && items.length ? <div className="brief-section" key={key}><strong>{key[0].toUpperCase() + key.slice(1)}</strong><ul>{items.map((item, index) => <li key={`${key}-${index}`}>{String(item)}</li>)}</ul></div> : null; })}{typeof brief.safetyNote === "string" && <p className="safety-note">{brief.safetyNote}</p>}</div>}<div className="modal-steps"><strong>Your first steps</strong><ol><li>Learn more about the challenge in your community.</li><li>Find a few teammates who are curious too.</li><li>Work with a teacher to shape your project plan.</li></ol></div>{joinError && <p className="form-error" role="alert">{joinError}</p>}<button className="button button-dark full-button" disabled={joining} onClick={() => void joinProject()}>{joining ? "Creating your team…" : "I’m interested"} {!joining && <ArrowRight size={15} />}</button></div></section></div>;
+  return (
+    <div className="modal-backdrop" role="presentation" onClick={onClose}>
+      <section className="challenge-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title" onClick={(event) => event.stopPropagation()}>
+        <button className="modal-close icon-button" onClick={onClose} aria-label="Close challenge"><X size={19} /></button>
+        <div className={`modal-art ${challenge.color}`}><div className="modal-art-orbit" /><div className="modal-art-plant"><Sprout size={52} /></div><span className="modal-art-spark">✳</span></div>
+        <div className="modal-body">
+          <span className="category-chip">{challenge.category}</span>
+          <h2 id="modal-title">{challenge.title}</h2>
+          <div className="modal-location"><MapPin size={14} />{challenge.location}</div>
+          <p>{challenge.description}</p>
+          <div className="modal-details">
+            <span><Clock3 size={15} /><strong>{challenge.duration}</strong><small>project length</small></span>
+            <span><Users size={15} /><strong>{challenge.participants} learners</strong><small>already curious</small></span>
+            <span><GraduationCap size={15} /><strong>{challenge.difficulty}</strong><small>difficulty</small></span>
+          </div>
+          <label className="form-label level-select">Uganda learner level
+            <select value={learnerLevel} onChange={(event) => setLearnerLevel(event.target.value)}>
+              <option>Primary P1–P7</option>
+              <option>Lower secondary S1–S4</option>
+              <option>Advanced secondary S5–S6</option>
+            </select>
+          </label>
+          <button className="button button-outline full-button ai-generate-button" disabled={loadingBrief} onClick={() => void generateBrief()}>
+            <Sparkles size={15} />{loadingBrief ? "Designing a learning project…" : "Generate learning project"}
+          </button>
+          {briefError && <p className="form-error" role="alert">{briefError}</p>}
+          {brief && <ProjectBriefPreview brief={brief} />}
+          <div className="modal-steps"><strong>Learn with your community</strong><ol>
+            <li>Listen to people affected and observe the challenge respectfully.</li>
+            <li>Work with classmates and a teacher on a safe, practical idea.</li>
+            <li>Share your findings and solution back with the community.</li>
+          </ol></div>
+          {joinError && <p className="form-error" role="alert">{joinError}</p>}
+          <button className="button button-dark full-button" disabled={joining} onClick={() => void joinProject()}>
+            {joining ? "Creating your team…" : "I’m interested"} {!joining && <ArrowRight size={15} />}
+          </button>
+        </div>
+      </section>
+    </div>
+  );
+}
+
+function isProjectBrief(value: unknown): value is ProjectBrief {
+  if (!value || typeof value !== "object") return false;
+  const brief = value as Record<string, unknown>;
+  return typeof brief.projectTitle === "string" &&
+    typeof brief.learnerLevel === "string" &&
+    typeof brief.safetyNote === "string" &&
+    ["subjects", "competencies", "objectives", "activities", "assessment"].every(
+      (key) => Array.isArray(brief[key]) && (brief[key] as unknown[]).every((item) => typeof item === "string"),
+    );
 }
 
 function Toast({ message, onDismiss }: { message: string; onDismiss: () => void }) {
