@@ -45,7 +45,7 @@ export async function requireSchoolMembership(allowedRoles: readonly string[]) {
       status: "active",
       role: { in: [...allowedRoles] },
     },
-    include: { school: true },
+    include: { school: true, user: { select: { name: true } } },
     orderBy: { createdAt: "asc" },
   });
   const activeSchoolId = (await cookies()).get("kivora-active-school")?.value;

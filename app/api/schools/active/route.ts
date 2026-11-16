@@ -16,13 +16,13 @@ export async function POST(request: Request) {
 
     const membership = await prisma.schoolMembership.findFirst({
       where: { userId: user.id, schoolId, status: "active" },
-      select: { schoolId: true },
+      select: { schoolId: true, role: true },
     });
     if (!membership) {
       return NextResponse.json({ error: "You do not have an active membership at that school." }, { status: 403 });
     }
 
-    const result = NextResponse.json({ success: true });
+    const result = NextResponse.json({ success: true, role: membership.role });
     result.cookies.set("kivora-active-school", membership.schoolId, {
       httpOnly: true,
       sameSite: "lax",
