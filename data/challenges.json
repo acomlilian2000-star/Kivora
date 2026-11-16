@@ -1,0 +1,58 @@
+[
+  {
+    "id": "challenge-plastic-kariakoo",
+    "title": "Give plastic a second life",
+    "category": "Environment",
+    "location": "Kariakoo Market, Dar es Salaam",
+    "description": "Plastic waste is blocking drainage and affecting the cleanliness of our local market.",
+    "difficulty": "Intermediate",
+    "duration": "3 weeks",
+    "participants": 24,
+    "color": "mint",
+    "icon": "leaf",
+    "status": "published",
+    "createdAt": "2026-11-12T08:00:00.000Z"
+  },
+  {
+    "id": "challenge-water-moshi",
+    "title": "Every drop counts",
+    "category": "Water & sanitation",
+    "location": "Moshi, Kilimanjaro",
+    "description": "Our school loses water through small leaks. How might we make every drop count?",
+    "difficulty": "Beginner",
+    "duration": "2 weeks",
+    "participants": 18,
+    "color": "blue",
+    "icon": "water",
+    "status": "published",
+    "createdAt": "2026-11-10T08:00:00.000Z"
+  },
+  {
+    "id": "challenge-energy-mwanza",
+    "title": "Light up the learning corner",
+    "category": "Energy",
+    "location": "Mwanza, Lake Zone",
+    "description": "Students need a safe, low-cost way to keep reading when the sun goes down.",
+    "difficulty": "Intermediate",
+    "duration": "4 weeks",
+    "participants": 12,
+    "color": "yellow",
+    "icon": "bulb",
+    "status": "published",
+    "createdAt": "2026-11-08T08:00:00.000Z"
+  },
+  {
+    "id": "challenge-school-path",
+    "title": "Safer paths to school",
+    "category": "Community safety",
+    "location": "Mlimani, Dar es Salaam",
+    "description": "Students and families want safer, more welcoming routes to and from school.",
+    "difficulty": "Beginner",
+    "duration": "2 weeks",
+    "participants": 0,
+    "color": "blue",
+    "icon": "bulb",
+    "status": "pending",
+    "createdAt": "2026-11-15T08:00:00.000Z"
+  }
+]

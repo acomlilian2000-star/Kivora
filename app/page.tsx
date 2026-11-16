@@ -1,5 +1,5 @@
-import KivoraApp from "@/components/kivora-app";
+import LandingPage from "@/components/landing-page";
 
 export default function Home() {
-  return <KivoraApp />;
+  return <LandingPage />;
 }

@@ -32,10 +32,12 @@ import {
   Users,
   X,
 } from "lucide-react";
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 
 type View = "Home" | "Discover challenges" | "My projects" | "Impact stories" | "Teacher review" | "Submit a challenge";
 type Challenge = {
+  id?: string;
+  status?: "pending" | "published";
   title: string;
   category: string;
   location: string;
@@ -311,27 +313,73 @@ function ImpactView() {
   return <div className="inner-view"><div className="page-intro"><div><p className="section-kicker">CHANGE, TOGETHER</p><h1>Impact stories</h1><p>See what happens when young people take on the challenges around them.</p></div><div className="intro-art"><Heart size={29} /></div></div><div className="impact-stats-row"><div><span>CHALLENGES SOLVED</span><strong>42</strong><small>Across 6 communities</small></div><div><span>STUDENTS CREATING</span><strong>316</strong><small>Curiosity in action</small></div><div><span>LOCAL PARTNERS</span><strong>18</strong><small>Growing together</small></div></div><div className="story-grid"><article className="story-card"><div className="story-art story-art-green"><div className="story-sun" /><div className="story-leaf"><Leaf size={60} /></div><span className="story-number">01</span></div><div className="story-body"><span className="story-category">ENVIRONMENT · DAR ES SALAAM</span><h3>From discarded plastic to market planters</h3><p>Students teamed up with market vendors to turn everyday plastic waste into a cleaner, greener space.</p><div className="story-author"><span className="author-avatar">FK</span><span><strong>Fatma’s team</strong><small>Upanga Secondary · 3 weeks ago</small></span><ArrowUpRight size={16} /></div></div></article><article className="story-card"><div className="story-art story-art-blue"><div className="story-wave wave-a" /><div className="story-wave wave-b" /><div className="story-drop">✳</div><span className="story-number">02</span></div><div className="story-body"><span className="story-category">WATER · MOSHI</span><h3>A school garden that grows with less</h3><p>A simple rainwater collection model helped one school care for its garden through the dry season.</p><div className="story-author"><span className="author-avatar author-blue">JN</span><span><strong>Juma & the Green Crew</strong><small>Moshi Secondary · 1 month ago</small></span><ArrowUpRight size={16} /></div></div></article></div></div>;
 }
 
-function TeacherReview({ onApprove }: { onApprove: (title: string) => void }) {
-  const [reviewed, setReviewed] = useState<string[]>([]);
-  const items = [{ title: "Give plastic a second life", by: "Submitted by Mariam K.", school: "Upanga Secondary", tag: "ENVIRONMENT", initials: "MK" }, { title: "Safer paths to school", by: "Submitted by Juma S.", school: "Mlimani Primary", tag: "COMMUNITY SAFETY", initials: "JS" }, { title: "A garden for every classroom", by: "Submitted by Neema P.", school: "Moshi Secondary", tag: "FOOD & GROWING", initials: "NP" }];
-  const handleApprove = (title: string) => { setReviewed((current) => [...current, title]); onApprove(title); };
-  return <div className="inner-view"><div className="page-intro"><div><p className="section-kicker">GUIDE THE NEXT GENERATION</p><h1>Teacher review</h1><p>Review community challenges before they become learning opportunities.</p></div><div className="review-count-card"><span>AWAITING YOUR REVIEW</span><strong>{Math.max(0, 4 - reviewed.length)}<small> submissions</small></strong></div></div><div className="review-tabs"><button className="review-tab active">Needs review <span>4</span></button><button className="review-tab">Project briefs <span>2</span></button><button className="review-tab">Recently approved</button></div><div className="review-list">{items.filter((item) => !reviewed.includes(item.title)).map((item) => <article className="review-card" key={item.title}><div className="review-avatar">{item.initials}</div><div className="review-card-main"><div className="review-meta"><span>{item.tag}</span><span>·</span><span>Submitted yesterday</span></div><h3>{item.title}</h3><p>{item.by} <span>·</span> {item.school}</p><div className="review-description">“We want to make our community cleaner and find a way for everyone to help.”</div></div><div className="review-actions"><button className="button button-outline small-button" onClick={() => handleApprove(item.title)}>Approve challenge <Check size={15} /></button><button className="review-text-button">View details <ArrowRight size={14} /></button></div></article>)}{items.every((item) => reviewed.includes(item.title)) && <div className="empty-state"><Check size={23} /><strong>You’re all caught up</strong><span>New community challenges will show up here.</span></div>}</div><div className="ai-note"><Sparkles size={17} /><span><strong>AI-assisted, teacher-approved.</strong> KIVORA can suggest learning objectives and activities, but you stay in control of what students see.</span></div></div>;
+function TeacherReview({ challenges, onApprove }: { challenges: Challenge[]; onApprove: (challenge: Challenge) => Promise<void> }) {
+  const [approving, setApproving] = useState<string | null>(null);
+  const [error, setError] = useState("");
+  const pending = challenges.filter((challenge) => challenge.status === "pending");
+  const handleApprove = async (challenge: Challenge) => {
+    if (!challenge.id) return;
+    setApproving(challenge.id);
+    setError("");
+    try {
+      await onApprove(challenge);
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "Could not approve this challenge.");
+    } finally {
+      setApproving(null);
+    }
+  };
+  return <div className="inner-view"><div className="page-intro"><div><p className="section-kicker">GUIDE THE NEXT GENERATION</p><h1>Teacher review</h1><p>Review community challenges before they become learning opportunities.</p></div><div className="review-count-card"><span>AWAITING YOUR REVIEW</span><strong>{pending.length}<small> submissions</small></strong></div></div><div className="review-tabs"><button className="review-tab active">Needs review <span>{pending.length}</span></button><button className="review-tab">Project briefs <span>0</span></button><button className="review-tab">Recently approved</button></div>{error && <p className="form-error" role="alert">{error}</p>}<div className="review-list">{pending.map((item) => <article className="review-card" key={item.id}><div className="review-avatar">KI</div><div className="review-card-main"><div className="review-meta"><span>{item.category.toUpperCase()}</span><span>·</span><span>Community submission</span></div><h3>{item.title}</h3><p>{item.location}</p><div className="review-description">“{item.description}”</div></div><div className="review-actions"><button className="button button-outline small-button" disabled={approving === item.id} onClick={() => void handleApprove(item)}>{approving === item.id ? "Approving…" : "Approve challenge"} <Check size={15} /></button><span className="review-text-button">Teacher approval required</span></div></article>)}{pending.length === 0 && <div className="empty-state"><Check size={23} /><strong>You’re all caught up</strong><span>New community challenges will show up here.</span></div>}</div><div className="ai-note"><Sparkles size={17} /><span><strong>AI-assisted, teacher-approved.</strong> KIVORA can suggest learning objectives and activities, but you stay in control of what students see.</span></div></div>;
 }
 
-function SubmitChallenge({ onSubmit, onCancel }: { onSubmit: (challenge: Challenge) => void; onCancel: () => void }) {
+function SubmitChallenge({ onSubmit, onCancel }: { onSubmit: (challenge: Challenge) => Promise<void>; onCancel: () => void }) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [location, setLocation] = useState("");
   const [category, setCategory] = useState("Environment");
-  const submit = (event: FormEvent<HTMLFormElement>) => {
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
+  const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    onSubmit({ title, description, location, category, difficulty: "Beginner", duration: "2–3 weeks", participants: 0, color: "mint", icon: "leaf" });
+    setSubmitting(true);
+    setError("");
+    try {
+      await onSubmit({ title, description, location, category, difficulty: "Beginner", duration: "2–3 weeks", participants: 0, color: "mint", icon: "leaf", status: "pending" });
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "Could not submit this challenge.");
+    } finally {
+      setSubmitting(false);
+    }
   };
-  return <div className="inner-view"><div className="page-intro"><div><p className="section-kicker">YOUR COMMUNITY, YOUR IDEAS</p><h1>Share a challenge</h1><p>Tell us about a local problem. It could become someone’s next big idea.</p></div><div className="intro-art"><MessageSquareText size={28} /></div></div><div className="submit-layout"><form className="submit-form panel" onSubmit={submit}><div className="form-heading"><span className="form-step">01</span><div><h2>What needs solving?</h2><p>A few details help us connect this challenge with curious minds.</p></div></div><label className="form-label">Give your challenge a short title<input required maxLength={70} value={title} onChange={(event) => setTitle(event.target.value)} placeholder="e.g. Our school needs a greener lunch break" /></label><label className="form-label">Tell us a little more<textarea required minLength={15} maxLength={500} value={description} onChange={(event) => setDescription(event.target.value)} placeholder="What’s happening? Who does it affect? What have you noticed?" rows={5} /><small>{description.length}/500</small></label><div className="form-two-col"><label className="form-label">Where is this happening?<div className="input-with-icon"><MapPin size={16} /><input required value={location} onChange={(event) => setLocation(event.target.value)} placeholder="Community, town or school" /></div></label><label className="form-label">Choose a topic<select value={category} onChange={(event) => setCategory(event.target.value)}><option>Environment</option><option>Water & sanitation</option><option>Energy</option><option>Health & wellbeing</option><option>Community safety</option><option>Other</option></select></label></div><div className="form-footnote"><span><Heart size={15} /> Your contact details are never shown publicly.</span><span>Submissions are reviewed by a teacher.</span></div><div className="form-actions"><button type="button" className="text-button" onClick={onCancel}>Cancel</button><button className="button button-dark" type="submit">Send for review <Send size={15} /></button></div></form><aside className="submit-aside"><div className="submit-aside-icon"><Lightbulb size={20} /></div><h3>What makes a great challenge?</h3><ul><li><Check size={14} /> It’s happening in your community</li><li><Check size={14} /> It affects people, places or nature</li><li><Check size={14} /> It leaves room for creative solutions</li></ul><div className="submit-aside-note"><Sparkles size={14} /><span>Once a teacher approves it, KIVORA can help shape it into a learning project.</span></div></aside></div></div>;
+  return <div className="inner-view"><div className="page-intro"><div><p className="section-kicker">YOUR COMMUNITY, YOUR IDEAS</p><h1>Share a challenge</h1><p>Tell us about a local problem. It could become someone’s next big idea.</p></div><div className="intro-art"><MessageSquareText size={28} /></div></div><div className="submit-layout"><form className="submit-form panel" onSubmit={submit}><div className="form-heading"><span className="form-step">01</span><div><h2>What needs solving?</h2><p>A few details help us connect this challenge with curious minds.</p></div></div><label className="form-label">Give your challenge a short title<input required maxLength={70} value={title} onChange={(event) => setTitle(event.target.value)} placeholder="e.g. Our school needs a greener lunch break" /></label><label className="form-label">Tell us a little more<textarea required minLength={15} maxLength={500} value={description} onChange={(event) => setDescription(event.target.value)} placeholder="What’s happening? Who does it affect? What have you noticed?" rows={5} /><small>{description.length}/500</small></label><div className="form-two-col"><label className="form-label">Where is this happening?<div className="input-with-icon"><MapPin size={16} /><input required value={location} onChange={(event) => setLocation(event.target.value)} placeholder="Community, town or school" /></div></label><label className="form-label">Choose a topic<select value={category} onChange={(event) => setCategory(event.target.value)}><option>Environment</option><option>Water & sanitation</option><option>Energy</option><option>Health & wellbeing</option><option>Community safety</option><option>Other</option></select></label></div><div className="form-footnote"><span><Heart size={15} /> Your contact details are never shown publicly.</span><span>Submissions are reviewed by a teacher.</span></div>{error && <p className="form-error" role="alert">{error}</p>}<div className="form-actions"><button type="button" className="text-button" onClick={onCancel}>Cancel</button><button className="button button-dark" type="submit" disabled={submitting}>{submitting ? "Sending…" : "Send for review"} {!submitting && <Send size={15} />}</button></div></form><aside className="submit-aside"><div className="submit-aside-icon"><Lightbulb size={20} /></div><h3>What makes a great challenge?</h3><ul><li><Check size={14} /> It’s happening in your community</li><li><Check size={14} /> It affects people, places or nature</li><li><Check size={14} /> It leaves room for creative solutions</li></ul><div className="submit-aside-note"><Sparkles size={14} /><span>Once a teacher approves it, KIVORA can help shape it into a learning project.</span></div></aside></div></div>;
 }
 
 function ChallengeModal({ challenge, onClose, onJoin }: { challenge: Challenge; onClose: () => void; onJoin: () => void }) {
-  return <div className="modal-backdrop" role="presentation" onClick={onClose}><section className="challenge-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title" onClick={(event) => event.stopPropagation()}><button className="modal-close icon-button" onClick={onClose} aria-label="Close challenge"><X size={19} /></button><div className={`modal-art ${challenge.color}`}><div className="modal-art-orbit" /><div className="modal-art-plant"><Sprout size={52} /></div><span className="modal-art-spark">✳</span></div><div className="modal-body"><span className="category-chip">{challenge.category}</span><h2 id="modal-title">{challenge.title}</h2><div className="modal-location"><MapPin size={14} />{challenge.location}</div><p>{challenge.description}</p><div className="modal-details"><span><Clock3 size={15} /><strong>{challenge.duration}</strong><small>project length</small></span><span><Users size={15} /><strong>{challenge.participants} students</strong><small>already curious</small></span><span><GraduationCap size={15} /><strong>{challenge.difficulty}</strong><small>difficulty</small></span></div><div className="modal-steps"><strong>Your first steps</strong><ol><li>Learn more about the challenge in your community.</li><li>Find a few teammates who are curious too.</li><li>Work with a teacher to shape your project plan.</li></ol></div><button className="button button-dark full-button" onClick={onJoin}>I’m interested <ArrowRight size={15} /></button></div></section></div>;
+  const [brief, setBrief] = useState<Record<string, unknown> | null>(null);
+  const [loadingBrief, setLoadingBrief] = useState(false);
+  const [briefError, setBriefError] = useState("");
+
+  async function generateBrief() {
+    setLoadingBrief(true);
+    setBriefError("");
+    setBrief(null);
+    try {
+      const response = await fetch("/api/impact-engine", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(challenge),
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || "Could not generate the project brief.");
+      setBrief(result.brief);
+    } catch (error) {
+      setBriefError(error instanceof Error ? error.message : "Could not generate the project brief.");
+    } finally {
+      setLoadingBrief(false);
+    }
+  }
+
+  return <div className="modal-backdrop" role="presentation" onClick={onClose}><section className="challenge-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title" onClick={(event) => event.stopPropagation()}><button className="modal-close icon-button" onClick={onClose} aria-label="Close challenge"><X size={19} /></button><div className={`modal-art ${challenge.color}`}><div className="modal-art-orbit" /><div className="modal-art-plant"><Sprout size={52} /></div><span className="modal-art-spark">✳</span></div><div className="modal-body"><span className="category-chip">{challenge.category}</span><h2 id="modal-title">{challenge.title}</h2><div className="modal-location"><MapPin size={14} />{challenge.location}</div><p>{challenge.description}</p><div className="modal-details"><span><Clock3 size={15} /><strong>{challenge.duration}</strong><small>project length</small></span><span><Users size={15} /><strong>{challenge.participants} students</strong><small>already curious</small></span><span><GraduationCap size={15} /><strong>{challenge.difficulty}</strong><small>difficulty</small></span></div><button className="button button-outline full-button ai-generate-button" disabled={loadingBrief} onClick={() => void generateBrief()}><Sparkles size={15} />{loadingBrief ? "Designing a learning project…" : "Generate learning project"}</button>{briefError && <p className="form-error" role="alert">{briefError}</p>}{brief && <div className="generated-brief"><div className="generated-title"><Sparkles size={15} /><strong>{String(brief.projectTitle || "Learning project")}</strong></div>{(["subjects", "objectives", "activities", "assessment"] as const).map((key) => { const items = brief[key]; return Array.isArray(items) && items.length ? <div className="brief-section" key={key}><strong>{key[0].toUpperCase() + key.slice(1)}</strong><ul>{items.map((item, index) => <li key={`${key}-${index}`}>{String(item)}</li>)}</ul></div> : null; })}{typeof brief.safetyNote === "string" && <p className="safety-note">{brief.safetyNote}</p>}</div>}<div className="modal-steps"><strong>Your first steps</strong><ol><li>Learn more about the challenge in your community.</li><li>Find a few teammates who are curious too.</li><li>Work with a teacher to shape your project plan.</li></ol></div><button className="button button-dark full-button" onClick={onJoin}>I’m interested <ArrowRight size={15} /></button></div></section></div>;
 }
 
 function Toast({ message, onDismiss }: { message: string; onDismiss: () => void }) {
@@ -345,25 +393,51 @@ export default function KivoraApp() {
   const [challenges, setChallenges] = useState(initialChallenges);
   const [selectedChallenge, setSelectedChallenge] = useState<Challenge | null>(null);
   const [toast, setToast] = useState("");
+  useEffect(() => {
+    fetch("/api/challenges")
+      .then(async (response) => {
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || "Could not load challenges.");
+        setChallenges(result.challenges);
+      })
+      .catch((error: unknown) => setToast(error instanceof Error ? error.message : "Could not load challenges."));
+  }, []);
   const pageTitle = activeView;
   const currentView = useMemo(() => {
     switch (activeView) {
       case "Discover challenges":
-        return <ChallengeBrowser challenges={challenges} onOpen={setSelectedChallenge} search={search} />;
+        return <ChallengeBrowser challenges={challenges.filter((challenge) => challenge.status !== "pending")} onOpen={setSelectedChallenge} search={search} />;
       case "My projects":
         return <ProjectsView />;
       case "Impact stories":
         return <ImpactView />;
       case "Teacher review":
-        return <TeacherReview onApprove={(title) => notify(`“${title}” approved for learning`) } />;
+        return <TeacherReview challenges={challenges} onApprove={async (challenge) => {
+          const response = await fetch(`/api/challenges/${challenge.id}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ status: "published" }),
+          });
+          const result = await response.json();
+          if (!response.ok) throw new Error(result.error || "Could not approve this challenge.");
+          setChallenges((current) => current.map((item) => item.id === challenge.id ? result.challenge : item));
+          notify(`“${challenge.title}” approved for learning`);
+        }} />;
       case "Submit a challenge":
-        return <SubmitChallenge onCancel={() => setActiveView("Home")} onSubmit={(challenge) => {
-          setChallenges((current) => [challenge, ...current]);
+        return <SubmitChallenge onCancel={() => setActiveView("Home")} onSubmit={async (challenge) => {
+          const response = await fetch("/api/challenges", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(challenge),
+          });
+          const result = await response.json();
+          if (!response.ok) throw new Error(result.error || "Could not submit this challenge.");
+          setChallenges((current) => [result.challenge, ...current]);
           setActiveView("Home");
           notify("Your challenge has been sent for teacher review");
         }} />;
       default:
-        return <Dashboard challenges={challenges} onNavigate={setActiveView} onOpenChallenge={setSelectedChallenge} search={search} />;
+        return <Dashboard challenges={challenges.filter((challenge) => challenge.status !== "pending")} onNavigate={setActiveView} onOpenChallenge={setSelectedChallenge} search={search} />;
     }
   }, [activeView, challenges, search]);
 
