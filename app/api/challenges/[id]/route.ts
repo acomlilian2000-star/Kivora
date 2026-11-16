@@ -16,7 +16,7 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
       return NextResponse.json({ error: "Only teacher approval (status: published) is supported." }, { status: 400 });
     }
     const { id } = await context.params;
-    const challenge = await publishChallenge(id);
+    const challenge = await publishChallenge(id, user.id);
     if (!challenge) return NextResponse.json({ error: "Challenge not found." }, { status: 404 });
     const smsStatus = challenge.contactPhone
       ? await sendSms(challenge.contactPhone, `KIVORA: "${challenge.title}" was approved and is ready for students.`)

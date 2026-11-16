@@ -42,8 +42,11 @@ export async function createChallenge(input: {
   });
 }
 
-export async function publishChallenge(id: string) {
+export async function publishChallenge(id: string, reviewerId: string) {
   const challenge = await prisma.challenge.findUnique({ where: { id } });
   if (!challenge) return null;
-  return prisma.challenge.update({ where: { id }, data: { status: "published" } });
+  return prisma.challenge.update({
+    where: { id },
+    data: { status: "published", reviewerId },
+  });
 }

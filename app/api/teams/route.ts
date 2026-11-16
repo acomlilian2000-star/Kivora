@@ -16,6 +16,7 @@ export async function GET() {
       },
       include: {
         challenge: { select: { id: true, title: true, category: true, description: true } },
+        project: true,
         members: { select: { id: true, memberRole: true } },
         submissions: {
           include: { assessment: { select: { score: true, feedback: true, badge: true } } },
@@ -53,7 +54,16 @@ export async function POST(request: Request) {
           challengeId,
           ownerId: user.id,
           members: { create: { userId: user.id } },
+          project: {
+            create: {
+              title: challenge.title,
+              problemStatement: challenge.description,
+              supervisorTeacherId: challenge.reviewerId,
+              status: "planning",
+            },
+          },
         },
+        include: { project: true },
       });
       await transaction.challenge.update({
         where: { id: challengeId },
