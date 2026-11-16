@@ -8,67 +8,170 @@ datasource db {
 }
 
 model User {
-  id                  String            @id @default(cuid())
+  id                  String             @id @default(cuid())
   name                String
-  email               String?           @unique
-  loginId             String?           @unique
+  email               String?            @unique
+  loginId             String?            @unique
   passwordHash        String?
-  mustChangePassword  Boolean           @default(false)
-  role                String            @default("student")
+  mustChangePassword  Boolean            @default(false)
+  role                String             @default("student")
   school              String?
-  createdAt           DateTime          @default(now())
+  createdAt           DateTime           @default(now())
   studentProfile      StudentProfile?
   teacherProfile      TeacherProfile?
   communityProfile    CommunityProfile?
   mentorProfile       MentorProfile?
-  supervisedStudents  StudentProfile[]  @relation("SupervisedStudents")
-  createdTeams        Team[]            @relation("TeamCreator")
-  submittedChallenges Challenge[]       @relation("ChallengeSubmitter")
-  reviewedChallenges  Challenge[]       @relation("ChallengeReviewer")
-  supervisedProjects  Project[]         @relation("ProjectSupervisor")
-  projectUpdates      ProjectUpdate[]   @relation("ProjectAuthor")
-  verifiedImpacts     ImpactRecord[]    @relation("ImpactVerifier")
-  feedbackAuthored    Feedback[]        @relation("FeedbackAuthor")
+  supervisedStudents  StudentProfile[]   @relation("SupervisedStudents")
+  createdTeams        Team[]             @relation("TeamCreator")
+  submittedChallenges Challenge[]        @relation("ChallengeSubmitter")
+  reviewedChallenges  Challenge[]        @relation("ChallengeReviewer")
+  supervisedProjects  Project[]          @relation("ProjectSupervisor")
+  projectUpdates      ProjectUpdate[]    @relation("ProjectAuthor")
+  verifiedImpacts     ImpactRecord[]     @relation("ImpactVerifier")
+  feedbackAuthored    Feedback[]         @relation("FeedbackAuthor")
   teamMembers         TeamMember[]
   assessments         Assessment[]
   notifications       Notification[]
+  schoolMemberships   SchoolMembership[] @relation("MembershipUser")
+  membershipsInvited  SchoolMembership[] @relation("MembershipInviter")
 }
 
 model School {
-  id         String           @id @default(cuid())
-  name       String
-  district   String
-  createdAt  DateTime         @default(now())
-  students   StudentProfile[]
-  teachers   TeacherProfile[]
-  challenges Challenge[]
+  id            String             @id @default(cuid())
+  name          String
+  district      String
+  schoolCode    String?            @unique
+  schoolType    String?
+  country       String             @default("Uganda")
+  location      String?
+  subcounty     String?
+  contactPhone  String?
+  headteacher   String?
+  status        String             @default("active")
+  createdAt     DateTime           @default(now())
+  students      StudentProfile[]
+  teachers      TeacherProfile[]
+  challenges    Challenge[]
+  memberships   SchoolMembership[]
+  classes       SchoolClass[]
+  teams         Team[]
+  projects      Project[]
+  projectBriefs ProjectBrief[]
+  updates       ProjectUpdate[]
+  evidence      ProjectEvidence[]
+  impactRecords ImpactRecord[]
+  feedback      Feedback[]
+  submissions   Submission[]
+  assessments   Assessment[]
+  notifications Notification[]
+  resources     Resource[]
+  ussdSessions  UssdSession[]
 
   @@unique([name, district])
   @@index([district])
 }
 
+model SchoolMembership {
+  id                    String                      @id @default(cuid())
+  schoolId              String
+  userId                String
+  role                  String
+  status                String                      @default("active")
+  invitedById           String?
+  createdAt             DateTime                    @default(now())
+  school                School                      @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  user                  User                        @relation("MembershipUser", fields: [userId], references: [id], onDelete: Cascade)
+  invitedBy             User?                       @relation("MembershipInviter", fields: [invitedById], references: [id], onDelete: SetNull)
+  administratorProfile  SchoolAdministratorProfile?
+  studentProfile        StudentProfile?
+  teacherProfile        TeacherProfile?
+  studentClasses        StudentClassMembership[]
+  teacherAssignments    TeacherClassAssignment[]
+  assignedClassStudents StudentClassMembership[]    @relation("ClassAssignmentAuthor")
+
+  @@unique([schoolId, userId, role])
+  @@index([userId, status])
+  @@index([schoolId, role, status])
+  @@index([invitedById])
+}
+
+model SchoolAdministratorProfile {
+  id           String           @id @default(cuid())
+  membershipId String           @unique
+  title        String?
+  createdAt    DateTime         @default(now())
+  membership   SchoolMembership @relation(fields: [membershipId], references: [id], onDelete: Cascade)
+}
+
+model SchoolClass {
+  id           String                   @id @default(cuid())
+  schoolId     String
+  name         String
+  classLevel   String
+  academicYear String?
+  createdAt    DateTime                 @default(now())
+  school       School                   @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  students     StudentClassMembership[]
+  teachers     TeacherClassAssignment[]
+
+  @@unique([schoolId, name, academicYear])
+  @@index([schoolId, classLevel])
+}
+
+model StudentClassMembership {
+  id           String            @id @default(cuid())
+  classId      String
+  membershipId String
+  assignedById String?
+  status       String            @default("active")
+  joinedAt     DateTime          @default(now())
+  schoolClass  SchoolClass       @relation(fields: [classId], references: [id], onDelete: Cascade)
+  student      SchoolMembership  @relation(fields: [membershipId], references: [id], onDelete: Cascade)
+  assignedBy   SchoolMembership? @relation("ClassAssignmentAuthor", fields: [assignedById], references: [id], onDelete: SetNull)
+
+  @@unique([classId, membershipId])
+  @@index([membershipId, status])
+  @@index([assignedById])
+}
+
+model TeacherClassAssignment {
+  id           String           @id @default(cuid())
+  classId      String
+  membershipId String
+  assignedAt   DateTime         @default(now())
+  schoolClass  SchoolClass      @relation(fields: [classId], references: [id], onDelete: Cascade)
+  teacher      SchoolMembership @relation(fields: [membershipId], references: [id], onDelete: Cascade)
+
+  @@unique([classId, membershipId])
+  @@index([membershipId])
+}
+
 model StudentProfile {
-  id                   String  @id @default(cuid())
-  userId               String  @unique
+  id                   String            @id @default(cuid())
+  userId               String            @unique
   schoolId             String?
+  schoolMembershipId   String?           @unique
   classLevel           String
   educationLevel       String
   supervisingTeacherId String
-  user                 User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  school               School? @relation(fields: [schoolId], references: [id], onDelete: SetNull)
-  supervisingTeacher   User    @relation("SupervisedStudents", fields: [supervisingTeacherId], references: [id], onDelete: Restrict)
+  user                 User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  school               School?           @relation(fields: [schoolId], references: [id], onDelete: SetNull)
+  schoolMembership     SchoolMembership? @relation(fields: [schoolMembershipId], references: [id], onDelete: SetNull)
+  supervisingTeacher   User              @relation("SupervisedStudents", fields: [supervisingTeacherId], references: [id], onDelete: Restrict)
 
   @@index([schoolId])
   @@index([supervisingTeacherId])
 }
 
 model TeacherProfile {
-  id       String  @id @default(cuid())
-  userId   String  @unique
-  schoolId String?
-  verified Boolean @default(false)
-  user     User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  school   School? @relation(fields: [schoolId], references: [id], onDelete: SetNull)
+  id                 String            @id @default(cuid())
+  userId             String            @unique
+  schoolId           String?
+  schoolMembershipId String?           @unique
+  verified           Boolean           @default(false)
+  user               User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  school             School?           @relation(fields: [schoolId], references: [id], onDelete: SetNull)
+  schoolMembership   SchoolMembership? @relation(fields: [schoolMembershipId], references: [id], onDelete: SetNull)
 
   @@index([schoolId])
 }
@@ -127,6 +230,7 @@ model Challenge {
 model ProjectBrief {
   id               String    @id @default(cuid())
   challengeId      String    @unique
+  schoolId         String?
   projectTitle     String
   learnerLevel     String    @default("Lower secondary · Senior 1–4")
   subjects         String
@@ -142,15 +246,20 @@ model ProjectBrief {
   approved         Boolean   @default(false)
   createdAt        DateTime  @default(now())
   challenge        Challenge @relation(fields: [challengeId], references: [id], onDelete: Cascade)
+  school           School?   @relation(fields: [schoolId], references: [id], onDelete: SetNull)
+
+  @@index([schoolId])
 }
 
 model Team {
   id          String       @id @default(cuid())
   name        String
   challengeId String
+  schoolId    String?
   ownerId     String?
   createdAt   DateTime     @default(now())
   challenge   Challenge    @relation(fields: [challengeId], references: [id], onDelete: Cascade)
+  school      School?      @relation(fields: [schoolId], references: [id], onDelete: SetNull)
   owner       User?        @relation("TeamCreator", fields: [ownerId], references: [id], onDelete: SetNull)
   members     TeamMember[]
   submissions Submission[]
@@ -158,11 +267,13 @@ model Team {
 
   @@index([ownerId])
   @@index([challengeId])
+  @@index([schoolId])
 }
 
 model Project {
   id                   String            @id @default(cuid())
   teamId               String            @unique
+  schoolId             String?
   title                String
   problemStatement     String
   proposedSolution     String            @default("")
@@ -178,6 +289,7 @@ model Project {
   createdAt            DateTime          @default(now())
   updatedAt            DateTime          @updatedAt
   team                 Team              @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  school               School?           @relation(fields: [schoolId], references: [id], onDelete: SetNull)
   supervisor           User?             @relation("ProjectSupervisor", fields: [supervisorTeacherId], references: [id], onDelete: SetNull)
   updates              ProjectUpdate[]
   evidence             ProjectEvidence[]
@@ -186,42 +298,50 @@ model Project {
 
   @@index([status])
   @@index([supervisorTeacherId])
+  @@index([schoolId, status])
 }
 
 model ProjectUpdate {
   id           String            @id @default(cuid())
   projectId    String
+  schoolId     String?
   authorId     String
   whatTried    String
   whatHappened String
   nextSteps    String
   createdAt    DateTime          @default(now())
   project      Project           @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  school       School?           @relation(fields: [schoolId], references: [id], onDelete: SetNull)
   author       User              @relation("ProjectAuthor", fields: [authorId], references: [id], onDelete: Cascade)
   evidence     ProjectEvidence[]
 
   @@index([projectId, createdAt])
   @@index([authorId])
+  @@index([schoolId])
 }
 
 model ProjectEvidence {
   id          String         @id @default(cuid())
   projectId   String
+  schoolId    String?
   updateId    String?
   fileUrl     String
   fileName    String
   contentType String
   createdAt   DateTime       @default(now())
   project     Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  school      School?        @relation(fields: [schoolId], references: [id], onDelete: SetNull)
   update      ProjectUpdate? @relation(fields: [updateId], references: [id], onDelete: SetNull)
 
   @@index([projectId])
   @@index([updateId])
+  @@index([schoolId])
 }
 
 model ImpactRecord {
   id           String   @id @default(cuid())
   projectId    String
+  schoolId     String?
   metric       String
   value        Int
   unit         String
@@ -230,24 +350,29 @@ model ImpactRecord {
   verifiedById String?
   createdAt    DateTime @default(now())
   project      Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  school       School?  @relation(fields: [schoolId], references: [id], onDelete: SetNull)
   verifiedBy   User?    @relation("ImpactVerifier", fields: [verifiedById], references: [id], onDelete: SetNull)
 
   @@index([projectId, status])
   @@index([verifiedById])
+  @@index([schoolId, status])
 }
 
 model Feedback {
   id        String   @id @default(cuid())
   projectId String
+  schoolId  String?
   authorId  String
   content   String
   moderated Boolean  @default(false)
   createdAt DateTime @default(now())
   project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  school    School?  @relation(fields: [schoolId], references: [id], onDelete: SetNull)
   author    User     @relation("FeedbackAuthor", fields: [authorId], references: [id], onDelete: Cascade)
 
   @@index([projectId, moderated])
   @@index([authorId])
+  @@index([schoolId])
 }
 
 model TeamMember {
@@ -274,10 +399,14 @@ model Submission {
   sharedPublicly    Boolean     @default(false)
   teamId            String
   challengeId       String
+  schoolId          String?
   createdAt         DateTime    @default(now())
   team              Team        @relation(fields: [teamId], references: [id], onDelete: Cascade)
   challenge         Challenge   @relation(fields: [challengeId], references: [id], onDelete: Cascade)
+  school            School?     @relation(fields: [schoolId], references: [id], onDelete: SetNull)
   assessment        Assessment?
+
+  @@index([schoolId, status])
 }
 
 model Assessment {
@@ -291,6 +420,10 @@ model Assessment {
   createdAt        DateTime   @default(now())
   submission       Submission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
   teacher          User       @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  schoolId         String?
+  school           School?    @relation(fields: [schoolId], references: [id], onDelete: SetNull)
+
+  @@index([schoolId])
 }
 
 model Notification {
@@ -301,7 +434,11 @@ model Notification {
   message   String
   status    String   @default("queued")
   createdAt DateTime @default(now())
+  schoolId  String?
   user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  school    School?  @relation(fields: [schoolId], references: [id], onDelete: SetNull)
+
+  @@index([schoolId, createdAt])
 }
 
 model Resource {
@@ -311,6 +448,10 @@ model Resource {
   summary   String
   url       String?
   createdAt DateTime @default(now())
+  schoolId  String?
+  school    School?  @relation(fields: [schoolId], references: [id], onDelete: SetNull)
+
+  @@index([schoolId, subject])
 }
 
 model UssdSession {
@@ -320,4 +461,8 @@ model UssdSession {
   state       String   @default("menu")
   answers     String   @default("{}")
   updatedAt   DateTime @updatedAt
+  schoolId    String?
+  school      School?  @relation(fields: [schoolId], references: [id], onDelete: SetNull)
+
+  @@index([schoolId, updatedAt])
 }
