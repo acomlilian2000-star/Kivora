@@ -580,7 +580,7 @@ function TeacherReview({ challenges, onApprove }: { challenges: Challenge[]; onA
   );
 }
 
-function SubmitChallenge({ onSubmit, onCancel }: { onSubmit: (challenge: Challenge) => Promise<void>; onCancel: () => void }) {
+function SubmitChallenge({ role, onSubmit, onCancel }: { role: string; onSubmit: (challenge: Challenge) => Promise<void>; onCancel: () => void }) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [location, setLocation] = useState("");
@@ -611,7 +611,7 @@ function SubmitChallenge({ onSubmit, onCancel }: { onSubmit: (challenge: Challen
       <div className="submit-layout">
         <form className="submit-form panel" onSubmit={submit}>
           <div className="form-heading"><span className="form-step">01</span><div><h2>What are you organising?</h2><p>A teacher reviews each entry before learners can join.</p></div></div>
-          <label className="form-label">Challenge type<select value={kind} onChange={(event) => setKind(event.target.value as "community" | "school")}><option value="community">Community problem</option><option value="school">School innovation challenge</option></select></label>
+          {role === "teacher" && <label className="form-label">Challenge type<select value={kind} onChange={(event) => setKind(event.target.value as "community" | "school")}><option value="community">Community problem</option><option value="school">School innovation challenge</option></select></label>}
           {kind === "school" && <label className="form-label">School name<input required maxLength={120} value={schoolName} onChange={(event) => setSchoolName(event.target.value)} placeholder="Name of the organising school" /></label>}
           <label className="form-label">Give your challenge a short title<input required maxLength={70} value={title} onChange={(event) => setTitle(event.target.value)} placeholder="e.g. Our school needs a greener lunch break" /></label>
           <label className="form-label">Tell us a little more<textarea required minLength={15} maxLength={500} value={description} onChange={(event) => setDescription(event.target.value)} placeholder="What’s happening? Who does it affect? What have you noticed?" rows={5} /><small>{description.length}/500</small></label>
@@ -622,7 +622,7 @@ function SubmitChallenge({ onSubmit, onCancel }: { onSubmit: (challenge: Challen
             <label className="form-label">Where is this happening?<div className="input-with-icon"><MapPin size={16} /><input required value={location} onChange={(event) => setLocation(event.target.value)} placeholder="Community, town or school" /></div></label>
             <label className="form-label">Choose a topic<select value={category} onChange={(event) => setCategory(event.target.value)}><option>Environment</option><option>Water & sanitation</option><option>Energy</option><option>Health & wellbeing</option><option>Community safety</option><option>Other</option></select></label>
           </div>
-          {kind === "community" && <label className="form-label">Phone for SMS updates (optional)<input type="tel" value={contactPhone} onChange={(event) => setContactPhone(event.target.value)} placeholder="+256 7XX XXX XXX" /></label>}
+          {role === "community" && kind === "community" && <label className="form-label">Phone for SMS updates (optional)<input type="tel" value={contactPhone} onChange={(event) => setContactPhone(event.target.value)} placeholder="+256 7XX XXX XXX" /></label>}
           <div className="form-footnote"><span><Heart size={15} /> Your contact details are never shown publicly.</span><span>Submissions are reviewed by a teacher.</span></div>
           {error && <p className="form-error" role="alert">{error}</p>}
           <div className="form-actions"><button type="button" className="text-button" onClick={onCancel}>Cancel</button><button className="button button-dark" type="submit" disabled={submitting}>{submitting ? "Sending…" : "Send for review"} {!submitting && <Send size={15} />}</button></div>
@@ -633,7 +633,7 @@ function SubmitChallenge({ onSubmit, onCancel }: { onSubmit: (challenge: Challen
   );
 }
 
-function ChallengeModal({ challenge, onClose, onJoin }: { challenge: Challenge; onClose: () => void; onJoin: (teamName: string) => Promise<void> }) {
+function ChallengeModal({ challenge, onClose, onJoin, role }: { challenge: Challenge; onClose: () => void; onJoin: (teamName: string) => Promise<void>; role: string }) {
   const [brief, setBrief] = useState<ProjectBrief | null>(null);
   const [learnerLevel, setLearnerLevel] = useState("Lower secondary S1–S4");
   const [teamName, setTeamName] = useState("");
@@ -695,7 +695,7 @@ function ChallengeModal({ challenge, onClose, onJoin }: { challenge: Challenge; 
             <span><Users size={15} /><strong>{challenge.participants} teams</strong><small>started</small></span>
             <span><GraduationCap size={15} /><strong>{challenge.difficulty}</strong><small>difficulty</small></span>
           </div>
-          <label className="form-label level-select">Uganda learner level
+          {role !== "community" && <><label className="form-label level-select">Uganda learner level
             <select value={learnerLevel} onChange={(event) => setLearnerLevel(event.target.value)}>
               <option>Primary P1–P7</option>
               <option>Lower secondary S1–S4</option>
@@ -706,19 +706,19 @@ function ChallengeModal({ challenge, onClose, onJoin }: { challenge: Challenge; 
             <Sparkles size={15} />{loadingBrief ? "Designing a learning project…" : "Generate learning project"}
           </button>
           {briefError && <p className="form-error" role="alert">{briefError}</p>}
-          {brief && <ProjectBriefPreview brief={brief} />}
+          {brief && <ProjectBriefPreview brief={brief} />}</>}
           <div className="modal-steps"><strong>Learn with your community</strong><ol>
             <li>Listen to people affected and observe the challenge respectfully.</li>
             <li>Work with classmates and a teacher on a safe, practical idea.</li>
             <li>Share your findings and solution back with the community.</li>
           </ol></div>
-          <label className="form-label">Learning team name
+          {role === "student" ? <><label className="form-label">Learning team name
             <input required minLength={2} maxLength={60} value={teamName} onChange={(event) => setTeamName(event.target.value)} placeholder="Choose a name for your team" />
           </label>
           {joinError && <p className="form-error" role="alert">{joinError}</p>}
           <button className="button button-dark full-button" disabled={joining || teamName.trim().length < 2} onClick={() => void joinProject()}>
             {joining ? "Creating your team…" : "I’m interested"} {!joining && <ArrowRight size={15} />}
-          </button>
+          </button></> : role === "teacher" ? <p className="student-safety-note">Learners can join this challenge from their supervised student accounts.</p> : null}
         </div>
       </section>
     </div>
@@ -841,7 +841,7 @@ export default function KivoraApp({ role }: { role: string }) {
       case "Mobile access":
         return <MobileAccess />;
       case "Submit a challenge":
-        return <SubmitChallenge onCancel={() => navigateTo("Home")} onSubmit={async (challenge) => {
+        return         <SubmitChallenge role={role} onCancel={() => navigateTo("Home")} onSubmit={async (challenge) => {
           const response = await fetch("/api/challenges", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -875,7 +875,7 @@ export default function KivoraApp({ role }: { role: string }) {
       <div className="page-content">{currentView}</div>
       <footer className="app-footer"><span>© 2026 KIVORA</span><span>Ideas into impact, together.</span><span>Uganda-first · Community-led</span></footer>
     </main>
-    {selectedChallenge && <ChallengeModal challenge={selectedChallenge} onClose={() => setSelectedChallenge(null)} onJoin={async (teamName) => {
+    {selectedChallenge && <ChallengeModal challenge={selectedChallenge} role={role} onClose={() => setSelectedChallenge(null)} onJoin={async (teamName) => {
       if (!selectedChallenge.id) throw new Error("This challenge is not saved yet.");
       const response = await fetch("/api/teams", {
         method: "POST",
