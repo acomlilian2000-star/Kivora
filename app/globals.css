@@ -390,6 +390,7 @@ h1,h2,h3,p { margin-top: 0; }
 .hero-content p { color: #e2edf2; }
 .orbit { border-color: #b2d8e742; }
 .art-sun { background: #b8dfed; }
+.art-leaf { color: #7047b5; }
 .leaf-one { background: #71b3cf; }.leaf-one svg { color: #315f75; }.leaf-two { color: #b8e3f2; }
 .art-badge { background: #3f85a7; border-color: #78abc2; }.art-badge svg,.art-star { color: #d7f0fa; }
 .stat-icon.lime { color: #4386a8; background: #e9f5f9; }

@@ -11,12 +11,12 @@ import {
   CircleHelp,
   Clock3,
   Compass,
+  Droplets,
   FileText,
   Filter,
   Globe2,
   GraduationCap,
   Heart,
-  Leaf,
   Lightbulb,
   LogOut,
   MapPin,
@@ -27,7 +27,7 @@ import {
   Send,
   Smartphone,
   Sparkles,
-  Sprout,
+  Recycle,
   Target,
   Users,
   X,
@@ -233,8 +233,8 @@ function Dashboard({
         </div>
         <div className="hero-art" aria-hidden="true">
           <div className="orbit orbit-one" /><div className="orbit orbit-two" />
-          <div className="art-sun" /><div className="art-leaf leaf-one"><Leaf size={54} /></div><div className="art-leaf leaf-two"><Leaf size={35} /></div>
-          <div className="art-badge"><Sprout size={19} /><span>Ideas<br /><strong>grow here</strong></span></div>
+          <div className="art-sun" /><div className="art-leaf leaf-one"><Lightbulb size={48} /></div><div className="art-leaf leaf-two"><Users size={32} /></div>
+          <div className="art-badge"><Sparkles size={19} /><span>Ideas<br /><strong>move us</strong></span></div>
           <div className="art-star star-one">✳</div><div className="art-star star-two">✦</div>
         </div>
         <span className="hero-decoration">K</span>
@@ -280,7 +280,7 @@ function StatCard({ icon, label, value, caption, tone }: { icon: React.ReactNode
 }
 
 function ChallengeRow({ challenge, onClick }: { challenge: Challenge; onClick: () => void }) {
-  const Icon = challenge.icon === "leaf" ? Leaf : challenge.icon === "water" ? Sprout : Lightbulb;
+  const Icon = challenge.icon === "leaf" ? Recycle : challenge.icon === "water" ? Droplets : Lightbulb;
   return <button className="challenge-row" onClick={onClick}>
     <div className={`challenge-thumb ${challenge.color}`}><Icon size={22} strokeWidth={1.7} /></div>
     <div className="challenge-copy"><div className="challenge-title-line"><strong>{challenge.title}</strong><span className="category-chip">{challenge.category}</span></div><span className="challenge-location"><MapPin size={13} />{challenge.location}</span></div>
@@ -301,7 +301,7 @@ function ChallengeBrowser({ challenges, onOpen, search, kind }: { challenges: Ch
     <div className="page-intro"><div><p className="section-kicker">LEARN BY DOING</p><h1>Find your next challenge</h1><p>Real problems. Curious minds. Solutions that start right here.</p></div><div className="intro-art"><Compass size={29} /></div></div>
     <div className="filter-bar"><div className="filter-label"><Filter size={16} /> Explore by topic</div><div className="filter-chips">{categories.map((item) => <button key={item} className={`filter-chip ${category === item ? "filter-chip-active" : ""}`} onClick={() => setCategory(item)}>{item}</button>)}</div></div>
     <div className="browse-count"><span>{filtered.length} {kind === "school" ? "school challenges" : "community problems"}</span><span>Sorted by <strong>recently published <ChevronDown size={13} /></strong></span></div>
-    <div className="browser-list">{filtered.map((challenge) => <button className="browser-card" key={challenge.id ?? challenge.title} onClick={() => onOpen(challenge)}><div className={`browser-illustration ${challenge.color}`}><span className="illustration-orbit" /><span className="illustration-symbol">{challenge.icon === "leaf" ? <Leaf size={34} /> : challenge.icon === "water" ? <Sprout size={34} /> : <Lightbulb size={34} />}</span></div><div className="browser-card-body"><div className="browser-card-top"><span className="category-chip">{challenge.category}</span><span className="challenge-open">{challenge.kind === "school" ? "SCHOOL CHALLENGE" : "OPEN TO JOIN"}</span></div><h3>{challenge.title}</h3>{challenge.schoolName && <span className="challenge-school-name">{challenge.schoolName}</span>}<p>{challenge.description}</p><div className="browser-meta"><span><MapPin size={14} />{challenge.location}</span><span><Clock3 size={14} />{challenge.duration}</span><span><Users size={14} />{challenge.participants} teams</span></div><div className="browser-card-footer"><span className="difficulty"><span className={`difficulty-dot ${challenge.difficulty.toLowerCase()}`} />{challenge.difficulty}</span><span className="text-button">Explore challenge <ArrowRight size={14} /></span></div></div></button>)}</div>
+    <div className="browser-list">{filtered.map((challenge) => <button className="browser-card" key={challenge.id ?? challenge.title} onClick={() => onOpen(challenge)}><div className={`browser-illustration ${challenge.color}`}><span className="illustration-orbit" /><span className="illustration-symbol">{challenge.icon === "leaf" ? <Recycle size={34} /> : challenge.icon === "water" ? <Droplets size={34} /> : <Lightbulb size={34} />}</span></div><div className="browser-card-body"><div className="browser-card-top"><span className="category-chip">{challenge.category}</span><span className="challenge-open">{challenge.kind === "school" ? "SCHOOL CHALLENGE" : "OPEN TO JOIN"}</span></div><h3>{challenge.title}</h3>{challenge.schoolName && <span className="challenge-school-name">{challenge.schoolName}</span>}<p>{challenge.description}</p><div className="browser-meta"><span><MapPin size={14} />{challenge.location}</span><span><Clock3 size={14} />{challenge.duration}</span><span><Users size={14} />{challenge.participants} teams</span></div><div className="browser-card-footer"><span className="difficulty"><span className={`difficulty-dot ${challenge.difficulty.toLowerCase()}`} />{challenge.difficulty}</span><span className="text-button">Explore challenge <ArrowRight size={14} /></span></div></div></button>)}</div>
     {!filtered.length && <div className="empty-state"><Search size={22} /><strong>No challenges found</strong><span>Try a different search or topic.</span></div>}
   </div>;
 }
