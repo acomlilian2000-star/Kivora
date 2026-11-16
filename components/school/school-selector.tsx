@@ -27,7 +27,7 @@ export default function SchoolSelector({ memberships }: { memberships: SchoolOpt
       });
       const result = await response.json();
       if (!response.ok) throw new Error(result.error || "Could not select that school.");
-      router.push("/school/dashboard");
+      router.push(result.role === "SCHOOL_ADMIN" ? "/school/dashboard" : "/dashboard");
       router.refresh();
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : "Could not select that school.");
