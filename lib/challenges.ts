@@ -1,6 +1,7 @@
 import seedChallenges from "@/data/challenges.json";
 import { prisma } from "@/lib/prisma";
 import type { ChallengeStatus } from "@/lib/types";
+export type { ChallengeStatus } from "@/lib/types";
 
 export async function listChallenges(status?: ChallengeStatus) {
   const count = await prisma.challenge.count();

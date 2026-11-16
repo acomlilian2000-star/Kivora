@@ -1,4 +1,14 @@
 {
+  "/api/project-briefs/[id]/route": "app/api/project-briefs/[id]/route.js",
+  "/api/project-briefs/route": "app/api/project-briefs/route.js",
+  "/api/submissions/[id]/route": "app/api/submissions/[id]/route.js",
   "/_not-found/page": "app/_not-found/page.js",
+  "/api/submissions/route": "app/api/submissions/route.js",
+  "/api/teams/route": "app/api/teams/route.js",
+  "/api/challenges/[id]/route": "app/api/challenges/[id]/route.js",
+  "/api/ussd/route": "app/api/ussd/route.js",
+  "/api/challenges/route": "app/api/challenges/route.js",
+  "/api/impact-engine/route": "app/api/impact-engine/route.js",
+  "/dashboard/page": "app/dashboard/page.js",
   "/page": "app/page.js"
 }

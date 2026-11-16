@@ -7,21 +7,91 @@
       "static/chunks/main-app-420bac6df0481702.js",
       "static/chunks/app/_not-found/page-e9a4ae8e6703bff1.js"
     ],
+    "/api/project-briefs/[id]/route": [
+      "static/chunks/webpack-2bc309fe597aff29.js",
+      "static/chunks/4bd1b696-c023c6e3521b1417.js",
+      "static/chunks/255-73938ce8a8eac1ad.js",
+      "static/chunks/main-app-420bac6df0481702.js",
+      "static/chunks/app/api/project-briefs/[id]/route-d5366c30bc0a7f92.js"
+    ],
+    "/api/project-briefs/route": [
+      "static/chunks/webpack-2bc309fe597aff29.js",
+      "static/chunks/4bd1b696-c023c6e3521b1417.js",
+      "static/chunks/255-73938ce8a8eac1ad.js",
+      "static/chunks/main-app-420bac6df0481702.js",
+      "static/chunks/app/api/project-briefs/route-d5366c30bc0a7f92.js"
+    ],
+    "/api/submissions/[id]/route": [
+      "static/chunks/webpack-2bc309fe597aff29.js",
+      "static/chunks/4bd1b696-c023c6e3521b1417.js",
+      "static/chunks/255-73938ce8a8eac1ad.js",
+      "static/chunks/main-app-420bac6df0481702.js",
+      "static/chunks/app/api/submissions/[id]/route-d5366c30bc0a7f92.js"
+    ],
     "/layout": [
       "static/chunks/webpack-2bc309fe597aff29.js",
       "static/chunks/4bd1b696-c023c6e3521b1417.js",
       "static/chunks/255-73938ce8a8eac1ad.js",
       "static/chunks/main-app-420bac6df0481702.js",
-      "static/css/180110f3feb80a3f.css",
+      "static/css/aa277cc67b0e8b3a.css",
       "static/chunks/app/layout-0e250607368faa0d.js"
+    ],
+    "/api/submissions/route": [
+      "static/chunks/webpack-2bc309fe597aff29.js",
+      "static/chunks/4bd1b696-c023c6e3521b1417.js",
+      "static/chunks/255-73938ce8a8eac1ad.js",
+      "static/chunks/main-app-420bac6df0481702.js",
+      "static/chunks/app/api/submissions/route-d5366c30bc0a7f92.js"
+    ],
+    "/api/teams/route": [
+      "static/chunks/webpack-2bc309fe597aff29.js",
+      "static/chunks/4bd1b696-c023c6e3521b1417.js",
+      "static/chunks/255-73938ce8a8eac1ad.js",
+      "static/chunks/main-app-420bac6df0481702.js",
+      "static/chunks/app/api/teams/route-d5366c30bc0a7f92.js"
+    ],
+    "/api/challenges/[id]/route": [
+      "static/chunks/webpack-2bc309fe597aff29.js",
+      "static/chunks/4bd1b696-c023c6e3521b1417.js",
+      "static/chunks/255-73938ce8a8eac1ad.js",
+      "static/chunks/main-app-420bac6df0481702.js",
+      "static/chunks/app/api/challenges/[id]/route-d5366c30bc0a7f92.js"
+    ],
+    "/api/ussd/route": [
+      "static/chunks/webpack-2bc309fe597aff29.js",
+      "static/chunks/4bd1b696-c023c6e3521b1417.js",
+      "static/chunks/255-73938ce8a8eac1ad.js",
+      "static/chunks/main-app-420bac6df0481702.js",
+      "static/chunks/app/api/ussd/route-d5366c30bc0a7f92.js"
+    ],
+    "/api/challenges/route": [
+      "static/chunks/webpack-2bc309fe597aff29.js",
+      "static/chunks/4bd1b696-c023c6e3521b1417.js",
+      "static/chunks/255-73938ce8a8eac1ad.js",
+      "static/chunks/main-app-420bac6df0481702.js",
+      "static/chunks/app/api/challenges/route-d5366c30bc0a7f92.js"
+    ],
+    "/api/impact-engine/route": [
+      "static/chunks/webpack-2bc309fe597aff29.js",
+      "static/chunks/4bd1b696-c023c6e3521b1417.js",
+      "static/chunks/255-73938ce8a8eac1ad.js",
+      "static/chunks/main-app-420bac6df0481702.js",
+      "static/chunks/app/api/impact-engine/route-d5366c30bc0a7f92.js"
+    ],
+    "/dashboard/page": [
+      "static/chunks/webpack-2bc309fe597aff29.js",
+      "static/chunks/4bd1b696-c023c6e3521b1417.js",
+      "static/chunks/255-73938ce8a8eac1ad.js",
+      "static/chunks/main-app-420bac6df0481702.js",
+      "static/chunks/835-8c094e236a98242c.js",
+      "static/chunks/app/dashboard/page-43c355eb382776f0.js"
     ],
     "/page": [
       "static/chunks/webpack-2bc309fe597aff29.js",
       "static/chunks/4bd1b696-c023c6e3521b1417.js",
       "static/chunks/255-73938ce8a8eac1ad.js",
       "static/chunks/main-app-420bac6df0481702.js",
-      "static/chunks/486-e589a2efe07b5120.js",
-      "static/chunks/app/page-2b6052d0d990989d.js"
+      "static/chunks/app/page-a99912ae46eb1cd0.js"
     ]
   }
 }
