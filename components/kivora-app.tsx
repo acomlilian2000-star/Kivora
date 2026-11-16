@@ -52,8 +52,6 @@ type Challenge = {
   peopleAffected?: string | null;
   whyItMatters?: string | null;
   possibleAreas?: string | null;
-  kind?: "community" | "school";
-  schoolName?: string | null;
   title: string;
   category: string;
   location: string;
@@ -406,6 +404,7 @@ type TeacherProjectBrief = {
   timeline: string;
   expectedOutcomes: string;
   assessment: string;
+  safetyNote: string;
   challenge: { title: string };
 };
 
