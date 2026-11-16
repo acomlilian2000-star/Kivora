@@ -1,22 +1,17 @@
-import seedChallenges from "@/data/challenges.json";
 import { prisma } from "@/lib/prisma";
 import type { ChallengeStatus } from "@/lib/types";
 export type { ChallengeStatus } from "@/lib/types";
 
 export async function listChallenges(status?: ChallengeStatus) {
-  const count = await prisma.challenge.count();
-  if (count === 0) {
-    await prisma.challenge.createMany({
-      data: seedChallenges.map(({ createdAt, ...challenge }) => ({
-        ...challenge,
-        createdAt: new Date(createdAt),
-      })),
-    });
-  }
-  return prisma.challenge.findMany({
+  const challenges = await prisma.challenge.findMany({
     where: status ? { status } : undefined,
     orderBy: { createdAt: "desc" },
+    include: { _count: { select: { teams: true } } },
   });
+  return challenges.map(({ _count, ...challenge }) => ({
+    ...challenge,
+    participants: _count.teams,
+  }));
 }
 
 export async function createChallenge(input: {
@@ -29,6 +24,8 @@ export async function createChallenge(input: {
   return prisma.challenge.create({
     data: {
       ...input,
+      color: "blue",
+      icon: "bulb",
       contactPhone: input.contactPhone || null,
     },
   });

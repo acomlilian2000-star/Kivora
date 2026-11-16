@@ -283,6 +283,23 @@ h1,h2,h3,p { margin-top: 0; }
 .brief-section ul { margin: 4px 0 0; padding-left: 16px; color: #748075; font-size: 9px; line-height: 1.65; }
 .safety-note { margin: 10px 0 0; color: #78866c; font-size: 9px; line-height: 1.5; }
 
+.nav-section { display: flex; flex-direction: column; gap: 2px; }
+.sidebar { overflow-y: auto; }
+.side-nav { flex-shrink: 0; overflow-y: visible; }
+.nav-group-toggle { width: 100%; display: flex; align-items: center; justify-content: space-between; padding: 9px 11px 5px; border: 0; color: #8294a0; background: transparent; font-size: 9px; font-weight: 700; letter-spacing: .9px; text-align: left; text-transform: uppercase; cursor: pointer; }
+.nav-group-chevron { transition: transform .16s ease; }
+.nav-group-chevron.collapsed { transform: rotate(-90deg); }
+.landing-proof-mark { width: 31px; height: 31px; display: grid; place-items: center; flex: 0 0 31px; border-radius: 9px; color: #377c9f; background: #e8f4f9; }
+.mobile-access-shortcut { min-height: 32px; padding: 7px 10px; white-space: nowrap; }
+.progress-panel > p { min-height: 76px; color: #718493; font-size: 10px; line-height: 1.7; }
+.workspace-switch { cursor: default; }
+.workspace-switch small { letter-spacing: .1px; }
+.side-nav .nav-link-active { border-left: 3px solid #328cc3; }
+.sidebar-bottom .impact-mini { background: #edf6fa; }
+.sidebar-bottom .impact-mini-icon { color: #4386a8; background: #ddecf4; }
+.brand-mark,.landing-brand-mark { color: #fff; }
+.landing-brand-mark { border-radius: 9px; }
+
 .landing { --landing-ink: #20352a; --landing-green: #315d40; min-height: 100vh; color: var(--landing-ink); background: #fbfcf9; font-family: var(--font-body); }
 .landing-nav { width: min(1190px, calc(100% - 88px)); height: 79px; margin: auto; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #e9eee7; }
 .landing-brand { display: inline-flex; align-items: center; color: #294032; font-family: var(--font-display); font-size: 17px; font-weight: 800; letter-spacing: 1.4px; text-decoration: none; }

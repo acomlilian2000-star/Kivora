@@ -1,9 +1,6 @@
-import seedResources from "@/data/resources.json";
 import { prisma } from "@/lib/prisma";
 
 export async function retrieveResources(query: string) {
-  const count = await prisma.resource.count();
-  if (count === 0) await prisma.resource.createMany({ data: seedResources });
   const resources = await prisma.resource.findMany();
   const terms = query.toLowerCase().split(/[^a-z0-9]+/).filter((term) => term.length > 3);
   return resources

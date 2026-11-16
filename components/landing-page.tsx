@@ -8,6 +8,7 @@ import {
   Leaf,
   Lightbulb,
   MessageSquareText,
+  Sparkles,
   Smartphone,
   Sprout,
   Users,
@@ -18,12 +19,12 @@ export default function LandingPage() {
     <main className="landing">
       <header className="landing-nav">
         <Link className="landing-brand" href="/" aria-label="KIVORA home">
-          <span className="landing-brand-mark"><Sprout size={19} /></span>KIVORA<span className="landing-period">.</span>
+          <span className="landing-brand-mark"><Sparkles size={18} /></span>KIVORA<span className="landing-period">.</span>
         </Link>
         <nav className="landing-links" aria-label="Main navigation">
           <a href="#how-it-works">How it works</a>
           <a href="#for-everyone">For everyone</a>
-          <a href="#our-impact">Our impact</a>
+          <a href="#basic-phone">Basic-phone access</a>
         </nav>
         <Link className="landing-login" href="/dashboard">Log in <ArrowUpRight size={15} /></Link>
       </header>
@@ -35,9 +36,9 @@ export default function LandingPage() {
           <p className="landing-lede">Great ideas grow everywhere. KIVORA helps Ugandan learners and teachers work with their communities to turn local challenges into practical, hands-on learning.</p>
           <div className="landing-hero-actions">
             <Link className="landing-cta" href="/dashboard">Explore the platform <ArrowRight size={16} /></Link>
-            <a className="landing-watch" href="#how-it-works"><span><ArrowDown size={14} /></span> See how it works</a>
+            <a className="landing-watch" href="#basic-phone"><span><ArrowDown size={14} /></span> Basic-phone access</a>
           </div>
-          <div className="landing-proof"><div className="landing-avatars"><span>AM</span><span>JN</span><span>FK</span><span>+</span></div><span><strong>Rooted in local knowledge.</strong><br />Designed in Uganda. Adaptable elsewhere.</span></div>
+          <div className="landing-proof"><span className="landing-proof-mark"><Users size={18} /></span><span><strong>Rooted in local knowledge.</strong><br />Designed in Uganda. Adaptable elsewhere.</span></div>
         </div>
         <div className="landing-hero-art" aria-label="Illustration of ideas growing into impact">
           <div className="landing-art-grid" />
@@ -64,10 +65,10 @@ export default function LandingPage() {
         <div className="landing-value"><span className="value-icon value-teacher"><Heart size={19} /></span><strong>Teachers</strong><p>Guide projects that use local knowledge and resources.</p></div>
       </section>
 
-      <section className="rural-access">
-        <div className="rural-access-heading"><span className="landing-overline">DESIGNED FOR REAL-WORLD CONDITIONS</span><h2>Works beyond the signal bars.</h2><p>Learning should not depend on having the newest phone or a strong connection.</p></div>
-        <div className="rural-access-item"><span><MessageSquareText size={18} /></span><div><strong>Basic-phone friendly</strong><p>Community members can submit challenges through a USSD menu.</p></div></div>
-        <div className="rural-access-item"><span><Smartphone size={18} /></span><div><strong>Lightweight by design</strong><p>Simple screens and text-first flows help make mobile data go further.</p></div></div>
+      <section className="rural-access" id="basic-phone">
+        <div className="rural-access-heading"><span className="landing-overline">DESIGNED FOR REAL-WORLD CONDITIONS</span><h2>No smartphone. No data bundle.</h2><p>USSD can work on a basic phone over a cellular signal. The live KIVORA shortcode must first be provisioned for Uganda’s mobile networks.</p></div>
+        <div className="rural-access-item"><span><MessageSquareText size={18} /></span><div><strong>For a community member</strong><p>Once launched, dial the registered shortcode, choose “submit a problem,” and reply to the prompts. No app or internet bundle is needed; network coverage is.</p></div></div>
+        <div className="rural-access-item"><span><Smartphone size={18} /></span><div><strong>For KIVORA operators</strong><p>The USSD callback must run at a public HTTPS address. A developer’s local computer or localhost cannot receive calls from a village phone.</p></div></div>
         <div className="rural-access-item"><span><Sprout size={19} /></span><div><strong>Local challenges, local solutions</strong><p>Start with the knowledge, people and materials already in your community.</p></div></div>
       </section>
 
@@ -87,7 +88,7 @@ export default function LandingPage() {
       </section>
 
       <footer className="landing-footer">
-        <Link className="landing-brand" href="/"><span className="landing-brand-mark"><Sprout size={17} /></span>KIVORA<span className="landing-period">.</span></Link>
+        <Link className="landing-brand" href="/"><span className="landing-brand-mark"><Sparkles size={17} /></span>KIVORA<span className="landing-period">.</span></Link>
         <span>Ideas into impact. Together.</span>
         <Link href="/dashboard">Explore the platform <ArrowRight size={14} /></Link>
       </footer>

@@ -1,1 +1,8 @@
-{}
+{
+  "/api/challenges/route": "app/api/challenges/route.js",
+  "/api/dashboard/summary/route": "app/api/dashboard/summary/route.js",
+  "/api/project-briefs/route": "app/api/project-briefs/route.js",
+  "/api/submissions/route": "app/api/submissions/route.js",
+  "/dashboard/page": "app/dashboard/page.js",
+  "/page": "app/page.js"
+}

@@ -29,7 +29,7 @@ model Challenge {
   duration      String        @default("2–3 weeks")
   participants  Int           @default(0)
   color         String        @default("mint")
-  icon          String        @default("leaf")
+  icon          String        @default("bulb")
   status        String        @default("pending")
   contactPhone  String?
   createdAt     DateTime      @default(now())

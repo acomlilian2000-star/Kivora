@@ -26,9 +26,9 @@ Requirements: Node.js 20.9 or later and npm.
    npm.cmd run dev
    ```
 
-5. Open [http://localhost:3000](http://localhost:3000) for the separate public landing page. Select **Explore the platform** to enter the application at `/dashboard`, which has its own persistent sidebar navigation.
+5. Open [http://localhost:3000](http://localhost:3000) for the public landing page. Select **Explore the platform** to enter `/dashboard`. The sidebar sections can be collapsed, pages have shareable URLs, and browser back/forward works.
 
-The local database is `prisma/dev.db`. The first request to the challenges API seeds the demo challenges; the curriculum resource records are seeded when the Impact Engine is used.
+The local database is `prisma/dev.db`. It starts empty by design: no sample challenges, fake learners, teams, activity counts, or impact stories are seeded. Submit a real challenge through the website or the configured USSD callback to create the first record.
 
 ## Demo flow
 
@@ -36,7 +36,20 @@ The local database is `prisma/dev.db`. The first request to the challenges API s
 2. Open **Teacher review** and approve it. The challenge becomes visible to students.
 3. Open **Discover challenges**, select the challenge and generate a learning-project brief. Add an OpenAI API key first; the draft is saved and is not student-approved yet.
 4. In **Teacher review → Project briefs**, approve the generated brief.
-5. Use **Mobile access** to simulate the Africa's Talking USSD menu. The same callback is available at `POST /api/ussd`.
+5. Use **Mobile access** only as a developer test of the callback. It is not a live shortcode.
+
+## Reaching a village on a basic phone
+
+A community member does **not** open this website on a kabiriti phone. Once the service is launched, they dial the real KIVORA USSD shortcode assigned through Africa's Talking and the participating Ugandan mobile networks, choose **Submit a community problem**, and answer short prompts. USSD works without an internet bundle or smartphone, but the phone still needs cellular network coverage.
+
+To activate that flow:
+
+1. Arrange an Africa's Talking USSD service/shortcode for Uganda and confirm which networks it supports.
+2. Deploy KIVORA to a public HTTPS URL (or use a temporary HTTPS tunnel while developing).
+3. Configure the Africa's Talking callback to `https://<your-host>/api/ussd`.
+4. Test the assigned shortcode on actual basic phones and supported networks before telling communities to use it.
+
+`localhost` is not reachable by Africa's Talking or by a village phone. The demo has no assigned live shortcode; do not advertise one until the provider and network operators activate it. SMS confirmations also require valid server-side Africa's Talking credentials.
 
 ## Environment variables
 
@@ -53,23 +66,24 @@ The `.env` file is local and ignored by Git. Never commit real API keys.
 | `AT_SENDER_ID` | Optional registered SMS sender | Empty |
 | `TEACHER_PHONE_NUMBER` | Optional teacher SMS alerts | Empty |
 
-Restart `npm.cmd run dev` after changing environment variables. AI generation returns a clear configuration error until `OPENAI_API_KEY` is set. SMS delivery is not attempted until Africa's Talking credentials are supplied. To receive real USSD traffic, expose the local app through a public HTTPS tunnel and configure the Africa's Talking sandbox callback URL as `https://<public-host>/api/ussd`.
+Restart `npm.cmd run dev` after changing environment variables. AI generation returns a clear configuration error until `OPENAI_API_KEY` is set. SMS delivery is not attempted until Africa's Talking credentials are supplied. Never put provider secrets in browser code.
 
 ## API routes
 
 - `GET /api/challenges?status=pending|published` — list persisted challenges.
+- `GET /api/dashboard/summary` — counts current stored challenges, teams and submissions (no seeded metrics).
 - `POST /api/challenges` — submit a challenge for teacher review.
 - `PATCH /api/challenges/:id` — teacher publishes a challenge.
-- `POST /api/impact-engine` — generate and save a structured OpenAI project brief with retrieved curriculum references.
+- `POST /api/impact-engine` — generate and save a structured OpenAI project-brief draft. Curriculum retrieval is inactive until real resources are added to the library.
 - `GET /api/project-briefs` and `PATCH /api/project-briefs/:id` — teacher review of AI briefs.
-- `POST /api/ussd` — Africa's Talking USSD callback and local simulator.
+- `POST /api/ussd` — Africa's Talking USSD callback and developer-only browser simulator.
 
 ## Scope and deployment notes
 
-Uganda alignment is informed by the [NCDC Lower Secondary Curriculum](https://ncdc.go.ug/lower-secondary-curriculum-embraced/), which describes a competency-based framework including key learning outcomes, values, generic skills, cross-cutting issues and a curriculum menu. NCDC also describes a revised lower-primary curriculum with foundational literacy in local languages, English and Kiswahili. KIVORA project briefs are learning supports, not substitutes for the current school syllabus or teacher judgement. Teachers should select the learner's level and check alignment to the current subject syllabus.
+Uganda alignment is informed by the [NCDC Lower Secondary Curriculum](https://ncdc.go.ug/lower-secondary-curriculum-embraced/), which describes a competency-based framework including key learning outcomes, values, generic skills, cross-cutting issues and a curriculum menu. KIVORA project briefs are learning supports, not substitutes for the current school syllabus or teacher judgement. Teachers should select the learner's level and check alignment to the current subject syllabus.
 
-The interface is designed mobile-first for rural connectivity constraints: low-weight screens, text-first journeys, and a USSD path for basic phones. The current website UI is English; local-language versions and SMS/USSD prompts should be reviewed with Ugandan communities before rollout. USSD callback and SMS provider wiring require Africa's Talking sandbox credentials and a publicly reachable callback URL.
+The interface is designed mobile-first for rural connectivity constraints. The website itself still needs an internet connection; the separate USSD route is intended for basic phones without mobile data. The current UI and USSD prompts are in English; local-language versions should be co-designed and tested with Ugandan communities.
 
-This repository is a locally runnable hackathon MVP, not a production-ready deployment. SQLite keeps setup self-contained; before a shared deployment, switch Prisma to PostgreSQL and migrate the schema. Authentication/authorization, student accounts, teams and submissions, evidence uploads, assessment/badges, inbound SMS, delivery retries, production-grade RAG/vector search, and deployment secrets still need implementation/configuration. Current teacher/student screens are demo workspaces, not security boundaries. Do not expose the demo endpoints to the public internet as-is.
+This repository is a locally runnable hackathon MVP, not a production-ready deployment. SQLite keeps setup self-contained; before a shared deployment, switch Prisma to PostgreSQL and migrate the schema. Authentication/authorization is not implemented: teacher review and project endpoints are not protected and must not be exposed publicly until access controls are added. Project IDs are stored in the creating browser. The resources table is empty until a curriculum/library management workflow is added; AI briefs must not be described as retrieval-grounded until that source library exists.
 
 AI output is an untrusted draft. A qualified teacher should check accuracy, age-appropriateness, curriculum alignment and safety before assigning a project.

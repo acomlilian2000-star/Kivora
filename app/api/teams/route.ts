@@ -1,12 +1,13 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getDemoUser } from "@/lib/demo-users";
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
-    const user = await getDemoUser("student");
+    const rawIds = new URL(request.url).searchParams.get("ids") ?? "";
+    const ids = rawIds.split(",").filter((id) => /^[a-zA-Z0-9_-]{1,30}$/.test(id)).slice(0, 50);
+    if (!ids.length) return NextResponse.json({ teams: [] });
     const teams = await prisma.team.findMany({
-      where: { members: { some: { userId: user.id } } },
+      where: { id: { in: ids } },
       include: {
         challenge: true,
         members: { include: { user: true } },
@@ -25,24 +26,24 @@ export async function POST(request: Request) {
   try {
     const body: unknown = await request.json();
     const challengeId = body && typeof body === "object" ? (body as { challengeId?: unknown }).challengeId : undefined;
-    if (typeof challengeId !== "string") return NextResponse.json({ error: "A challenge is required." }, { status: 400 });
+    const teamName = body && typeof body === "object" ? (body as { teamName?: unknown }).teamName : undefined;
+    if (typeof challengeId !== "string" || typeof teamName !== "string" || teamName.trim().length < 2 || teamName.trim().length > 60) {
+      return NextResponse.json({ error: "A challenge and a team name (2–60 characters) are required." }, { status: 400 });
+    }
     const challenge = await prisma.challenge.findUnique({ where: { id: challengeId } });
     if (!challenge || challenge.status !== "published") {
       return NextResponse.json({ error: "Only published challenges can be joined." }, { status: 409 });
     }
-    const user = await getDemoUser("student");
-    const existing = await prisma.team.findFirst({
-      where: { challengeId, members: { some: { userId: user.id } } },
+    const team = await prisma.$transaction(async (transaction) => {
+      const created = await transaction.team.create({
+        data: { name: teamName.trim(), challengeId },
+      });
+      await transaction.challenge.update({
+        where: { id: challengeId },
+        data: { participants: { increment: 1 } },
+      });
+      return created;
     });
-    if (existing) return NextResponse.json({ team: existing });
-    const team = await prisma.team.create({
-      data: {
-        name: `${user.name}'s team`,
-        challengeId,
-        members: { create: { userId: user.id } },
-      },
-    });
-    await prisma.challenge.update({ where: { id: challengeId }, data: { participants: { increment: 1 } } });
     return NextResponse.json({ team }, { status: 201 });
   } catch (error) {
     console.error("Could not join challenge:", error);
