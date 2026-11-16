@@ -12,7 +12,7 @@ Requirements: Node.js 20.9 or later and npm.
    npm.cmd install
    ```
 
-2. Copy `.env.example` to `.env`, then set `AUTH_SECRET` to a long random value and `TEACHER_INVITE_CODE` to a private invitation code. Keep `.env` local and never commit it. The SQLite database is created locally.
+2. Edit the existing `.env` file and keep its private values out of Git. The required local settings are already listed there; add provider credentials only in that file when you have them.
 3. Generate the Prisma client and create the local database:
 
    ```powershell
@@ -26,20 +26,18 @@ Requirements: Node.js 20.9 or later and npm.
    npm.cmd run dev
    ```
 
-5. Open [http://localhost:3000](http://localhost:3000) for the public landing page. Select **Explore the platform** to enter `/dashboard`. The sidebar sections can be collapsed, pages have shareable URLs, and browser back/forward works.
+5. Open [http://localhost:3000](http://localhost:3000) for the public landing page. Choose **Register your school** to create a school-owned workspace, or **Join KIVORA** to create a community account.
 
-The local database is `prisma/dev.db`. It starts empty by design: no sample challenges, fake learners, teams, activity counts, or impact stories are seeded. Submit a real challenge through the website or the configured USSD callback to create the first record.
+The local database is `prisma/dev.db`. It may contain existing user and USSD records; do not delete it to reset the app. A verified pre-tenancy backup is kept locally under `prisma/backups/` and is ignored by Git. No sample challenges, fake learners, teams, activity counts, or impact stories are seeded.
 
 ## Demo flow
 
-1. Register a teacher account with your `TEACHER_INVITE_CODE`.
-2. From **Manage learners**, create a supervised student account and securely give the learner the one-time login ID and password. The learner must change the password on first sign-in.
-3. Sign in as a community member (or submit through USSD) and share a real local challenge.
-4. As a teacher, open **Teacher review** and approve the challenge.
-5. As a student, discover the approved challenge, create a team and use **My projects** to plan a safe solution, local resources, materials, steps and expected outcomes.
-6. Submit real progress for teacher feedback. Public showcase sharing needs both learner opt-in and explicit teacher approval.
-7. Add an OpenAI API key to generate an age-appropriate project draft. A teacher must review AI output before it is assigned.
-8. Use **Mobile access** only as a developer test of the callback. It is not a live shortcode.
+1. Register your school at `/school/register`. Its first account becomes `SCHOOL_ADMIN`, and KIVORA assigns a unique school code.
+2. Sign in to the school dashboard to see the registered school profile and database-backed counts. The teacher, learner and class management flows are the next implementation stage.
+3. Join as a community member to submit a real local challenge, or use the configured USSD callback when Africa's Talking is available.
+4. Existing teacher/student challenge and project workflows remain available to their current accounts; new teacher accounts will be created through school membership rather than public registration.
+5. Add an OpenAI API key to generate an age-appropriate project draft. A teacher must review AI output before it is assigned.
+6. Use **Mobile access** only as a developer test of the callback. It is not a live shortcode.
 
 ## Reaching a village on a basic phone
 
@@ -62,7 +60,6 @@ The `.env` file is local and ignored by Git. Never commit real API keys.
 | --- | --- | --- |
 | `DATABASE_URL` | Prisma persistence | `file:./dev.db` (SQLite) |
 | `AUTH_SECRET` | Sign and encrypt login sessions | Generate a private random secret |
-| `TEACHER_INVITE_CODE` | Gate teacher self-registration | Choose a private invitation code |
 | `OPENAI_API_KEY` | OpenAI project generation | Empty until configured |
 | `OPENAI_MODEL` | OpenAI model | `gpt-4o-mini` |
 | `NEXT_PUBLIC_APP_URL` | Local app URL | `http://localhost:3000` |
@@ -77,6 +74,8 @@ Restart `npm.cmd run dev` after changing environment variables. AI generation re
 
 - `GET /api/challenges?status=pending|published` — list persisted challenges.
 - `GET /api/dashboard/summary` — counts current stored challenges, teams and submissions (no seeded metrics).
+- `POST /api/schools/register` — creates a school, its first administrator membership and a unique school code in one transaction.
+- `POST /api/schools/active` — selects a school only after verifying the signed-in user's active membership.
 - `POST /api/challenges` — submit a challenge for teacher review.
 - `PATCH /api/challenges/:id` — teacher publishes a challenge.
 - `GET /api/teams` and `POST /api/teams` — supervised student teams and their project plans.
@@ -93,6 +92,6 @@ Uganda alignment is informed by the [NCDC Lower Secondary Curriculum](https://nc
 
 The interface is designed mobile-first for rural connectivity constraints. The website itself still needs an internet connection; the separate USSD route is intended for basic phones without mobile data. The current UI and USSD prompts are in English; local-language versions should be co-designed and tested with Ugandan communities.
 
-This repository is a locally runnable hackathon MVP, not a production-ready deployment. SQLite keeps setup self-contained; before a shared deployment, switch Prisma to PostgreSQL and migrate the schema. Authentication uses Auth.js credentials with role and teacher-invitation checks; accounts, school verification workflows, guardian consent and supervised moderation still need further production review. The resource library is empty until real curriculum materials are added; AI briefs must not be described as retrieval-grounded until that source library exists. File uploads and live Africa's Talking shortcode activation require provider configuration and are not represented as complete.
+This repository is a locally runnable hackathon MVP, not a production-ready deployment. SQLite remains the active local database. The additive multi-school schema is synced locally, but PostgreSQL is not installed and no SQLite-to-PostgreSQL migration has been run or claimed complete. School registration and membership checks are implemented; administrator verification, teacher/student/class management, guardian consent and full tenant coverage for legacy endpoints still need implementation and production review. The resource library is empty until real curriculum materials are added; AI briefs must not be described as retrieval-grounded until that source library exists. File uploads and live Africa's Talking shortcode activation require provider configuration and are not represented as complete.
 
 AI output is an untrusted draft. A qualified teacher should check accuracy, age-appropriateness, curriculum alignment and safety before assigning a project.
