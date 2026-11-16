@@ -5,6 +5,7 @@ node_modules
 /coverage
 /prisma/dev.db
 /prisma/dev.db-journal
+/prisma/backups/
 .env
 .env.*
 !.env.example
