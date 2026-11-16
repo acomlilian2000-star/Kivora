@@ -310,10 +310,38 @@ type StudentTeam = {
   id: string;
   name: string;
   challenge: { id: string; title: string; category: string; description: string };
+  project: {
+    id: string;
+    title: string;
+    proposedSolution: string;
+    objectives: string;
+    availableResources: string;
+    materialsNeeded: string;
+    steps: string;
+    estimatedDuration: string | null;
+    safetyConsiderations: string;
+    expectedOutcomes: string;
+    status: string;
+  } | null;
   submissions: Array<{ id: string; title: string; description: string; status: string; assessment: { score: number | null; feedback: string; badge: string | null } | null }>;
 };
 
 function ProjectTeamCard({ team }: { team: StudentTeam }) {
+  const [project, setProject] = useState(team.project);
+  const [plan, setPlan] = useState({
+    proposedSolution: team.project?.proposedSolution ?? "",
+    objectives: team.project?.objectives ?? "",
+    availableResources: team.project?.availableResources ?? "",
+    materialsNeeded: team.project?.materialsNeeded ?? "",
+    steps: team.project?.steps ?? "",
+    estimatedDuration: team.project?.estimatedDuration ?? "",
+    safetyConsiderations: team.project?.safetyConsiderations ?? "",
+    expectedOutcomes: team.project?.expectedOutcomes ?? "",
+    status: team.project?.status ?? "planning",
+  });
+  const [planError, setPlanError] = useState("");
+  const [savingPlan, setSavingPlan] = useState(false);
+  const [planSaved, setPlanSaved] = useState(false);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [evidence, setEvidence] = useState("");
@@ -324,6 +352,33 @@ function ProjectTeamCard({ team }: { team: StudentTeam }) {
   const [error, setError] = useState("");
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
+
+  async function savePlan(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!project) return;
+    setSavingPlan(true);
+    setPlanError("");
+    setPlanSaved(false);
+    try {
+      const response = await fetch(`/api/projects/${project.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(plan),
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || "Could not save your project plan.");
+      setProject(result.project);
+      setPlanSaved(true);
+    } catch (reason) {
+      setPlanError(reason instanceof Error ? reason.message : "Could not save your project plan.");
+    } finally {
+      setSavingPlan(false);
+    }
+  }
+
+  function updatePlan(field: keyof typeof plan, value: string) {
+    setPlan((current) => ({ ...current, [field]: value }));
+  }
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setSending(true);
@@ -361,7 +416,19 @@ function ProjectTeamCard({ team }: { team: StudentTeam }) {
       setSending(false);
     }
   }
-  return <article className="project-card"><div className="project-card-top"><div className="project-icon project-icon-green"><Lightbulb size={20} /></div><span className="project-status">IN PROGRESS</span></div><h3>{team.challenge.title}</h3><p>{team.challenge.description}</p><div className="project-tags"><span>{team.challenge.category}</span><span>Team: {team.name}</span></div>
+  return <article className="project-card"><div className="project-card-top"><div className="project-icon project-icon-green"><Lightbulb size={20} /></div><span className="project-status">{(project?.status ?? "planning").replaceAll("-", " ").toUpperCase()}</span></div><h3>{team.challenge.title}</h3><p>{team.challenge.description}</p><div className="project-tags"><span>{team.challenge.category}</span><span>Team: {team.name}</span></div>
+    {project && <form className="project-submit-form project-plan-form" onSubmit={(event) => void savePlan(event)}>
+      <strong>Plan your project</strong>
+      <textarea maxLength={1500} value={plan.proposedSolution} onChange={(event) => updatePlan("proposedSolution", event.target.value)} placeholder="What solution could your team try?" rows={2} />
+      <textarea maxLength={3000} value={plan.objectives} onChange={(event) => updatePlan("objectives", event.target.value)} placeholder="What will your team learn or find out?" rows={2} />
+      <div className="project-impact-inputs"><label>Resources nearby<textarea maxLength={1500} value={plan.availableResources} onChange={(event) => updatePlan("availableResources", event.target.value)} placeholder="What can you safely reuse?" rows={2} /></label><label>Materials needed<textarea maxLength={1500} value={plan.materialsNeeded} onChange={(event) => updatePlan("materialsNeeded", event.target.value)} placeholder="What else is needed?" rows={2} /></label></div>
+      <textarea maxLength={3000} value={plan.steps} onChange={(event) => updatePlan("steps", event.target.value)} placeholder="List your steps, one per line" rows={3} />
+      <div className="project-impact-inputs"><label>Time needed<input maxLength={100} value={plan.estimatedDuration} onChange={(event) => updatePlan("estimatedDuration", event.target.value)} placeholder="e.g. 3 weeks" /></label><label>Project stage<select value={plan.status} onChange={(event) => updatePlan("status", event.target.value)}><option value="planning">Planning</option><option value="building">Building</option><option value="testing">Testing</option><option value="ready-for-review">Ready for teacher review</option></select></label></div>
+      <textarea maxLength={1500} value={plan.safetyConsiderations} onChange={(event) => updatePlan("safetyConsiderations", event.target.value)} placeholder="Safety: What should your team and teacher check first?" rows={2} />
+      <textarea maxLength={3000} value={plan.expectedOutcomes} onChange={(event) => updatePlan("expectedOutcomes", event.target.value)} placeholder="What change do you hope to see?" rows={2} />
+      {planError && <span className="form-error" role="alert">{planError}</span>}{planSaved && <span className="form-success">Project plan saved.</span>}
+      <button className="button button-outline" disabled={savingPlan}>{savingPlan ? "Saving plan…" : "Save project plan"}</button>
+    </form>}
     <div className="team-submissions">{team.submissions.map((submission) => <div className="student-submission" key={submission.id}><strong>{submission.title}</strong><span>{submission.status === "reviewed" ? `Teacher score: ${submission.assessment?.score ?? "—"}/5` : "Awaiting teacher feedback"}</span>{submission.assessment && <p>{submission.assessment.feedback}{submission.assessment.badge ? ` · Badge: ${submission.assessment.badge}` : ""}</p>}</div>)}</div>
     <form className="project-submit-form" onSubmit={(event) => void submit(event)}><strong>Share your team’s progress</strong><input required minLength={3} maxLength={100} value={title} onChange={(event) => setTitle(event.target.value)} placeholder="Give your idea a title" /><textarea required minLength={20} maxLength={1000} value={description} onChange={(event) => setDescription(event.target.value)} placeholder="Describe what you tried, what happened, and what you will change" rows={3} /><input value={evidence} onChange={(event) => setEvidence(event.target.value)} placeholder="Evidence links (optional, space-separated)" aria-label="Evidence links" /><div className="project-impact-inputs"><label>People helped<input type="number" min="0" max="10000" value={peopleHelped} onChange={(event) => setPeopleHelped(event.target.value)} /></label><label>Materials reused<input type="number" min="0" max="10000" value={materialsReused} onChange={(event) => setMaterialsReused(event.target.value)} /></label><label>Problems addressed<input type="number" min="0" max="10000" value={problemsAddressed} onChange={(event) => setProblemsAddressed(event.target.value)} /></label></div><label className="assessment-public"><input type="checkbox" checked={sharePublicly} onChange={(event) => setSharePublicly(event.target.checked)} /> I agree to share this work without my name or contact details in the KIVORA showcase after teacher approval.</label><small>These impact counts are your report; a teacher must review them before they can be described as verified.</small>{error && <span className="form-error" role="alert">{error}</span>}{sent && <span className="form-success">Your work was sent to your teacher for review.</span>}<button className="button button-dark" disabled={sending}>{sending ? "Submitting…" : "Submit project update"} <Send size={14} /></button></form></article>;
 }
@@ -378,7 +445,7 @@ function ProjectsView() {
       })
       .catch((reason: unknown) => setError(reason instanceof Error ? reason.message : "Could not load projects."));
   }, []);
-  return <div className="inner-view"><div className="page-intro"><div><p className="section-kicker">YOUR IDEAS, IN ACTION</p><h1>My projects</h1><p>Join a challenge, bring your team together and share your solution with a teacher.</p></div><div className="intro-art"><Lightbulb size={29} /></div></div>{error && <p className="form-error" role="alert">{error}</p>}{teams.length ? <div className="project-cards">{teams.map((team) => <ProjectTeamCard key={team.id} team={team} />)}</div> : <div className="empty-projects"><span className="project-icon project-icon-green"><Sprout size={20} /></span><h2>Your next idea starts with a challenge</h2><p>Explore a published community challenge, then choose “I’m interested” to start a team project here.</p></div>}</div>;
+  return <div className="inner-view"><div className="page-intro"><div><p className="section-kicker">YOUR IDEAS, IN ACTION</p><h1>My projects</h1><p>Plan your approach, use resources from your community, test safely and share progress with a teacher.</p></div><div className="intro-art"><Lightbulb size={29} /></div></div>{error && <p className="form-error" role="alert">{error}</p>}{teams.length ? <div className="project-cards">{teams.map((team) => <ProjectTeamCard key={team.id} team={team} />)}</div> : <div className="empty-projects"><span className="project-icon project-icon-green"><Lightbulb size={20} /></span><h2>Your next idea starts with a challenge</h2><p>Explore a published community challenge, then choose “I’m interested” to start a team project here.</p></div>}</div>;
 }
 
 function ImpactView() {

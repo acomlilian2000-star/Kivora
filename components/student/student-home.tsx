@@ -49,8 +49,8 @@ export default function StudentHome({
         </div>
       </section>
 
-      <section className="student-journey-stats" aria-label="Your learning activity">
-        <div><strong>{summary.publishedChallenges}</strong><span>problems to explore</span></div>
+      <section className="student-journey-stats" aria-label="KIVORA learning activity">
+        <div><strong>{summary.publishedChallenges}</strong><span>published problems</span></div>
         <div><strong>{summary.teams}</strong><span>teams started</span></div>
         <div><strong>{summary.submissions}</strong><span>project updates shared</span></div>
       </section>
